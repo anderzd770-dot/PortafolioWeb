@@ -1,0 +1,128 @@
+/* =========================================================
+   ESTILOS GLOBALES
+   Compartidos por todas las páginas: colores, tipografía,
+   cabecera, pie y accesibilidad.
+   ========================================================= */
+
+/* ----- Variables: cambia aquí los colores de todo el sitio ----- */
+:root {
+  --color-fondo: #0b0b10;        /* fondo general */
+  --color-superficie: #16161e;   /* fondo de elementos (ej. disco del logo) */
+  --color-texto: #ecebf2;        /* texto principal */
+  --color-texto-suave: #8e8c9c;  /* texto secundario */
+  --color-acento: #f2b35b;       /* color de acento (detalles, foco) */
+  --color-linea: rgba(255, 255, 255, 0.12); /* líneas finas y bordes */
+  --color-punto: rgba(255, 255, 255, 0.07); /* puntos de la rejilla de fondo */
+
+  --fuente: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --margen-lateral: clamp(1rem, 4vw, 2.5rem);
+}
+
+/* ----- Reset mínimo ----- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  /* La página ocupa toda la pantalla: cabecera / contenido / pie */
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--fuente);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ----- Cabecera ----- */
+.cabecera {
+  position: relative;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem var(--margen-lateral);
+}
+
+.cabecera__marca {
+  color: inherit;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.menu {
+  display: flex;
+  gap: 1.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu a {
+  color: var(--color-texto-suave);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.menu a:hover,
+.menu a[aria-current="page"] {
+  color: var(--color-texto);
+}
+
+/* ----- Pie ----- */
+.pie {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  padding: 1rem var(--margen-lateral);
+  border-top: 1px solid var(--color-linea);
+  color: var(--color-texto-suave);
+  font-size: 0.75rem;
+}
+
+.pie p {
+  margin: 0;
+}
+
+/* ----- Accesibilidad ----- */
+
+/* Contorno visible al navegar con el teclado (Tab) */
+:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 3px;
+}
+
+/* Si la persona pidió "reducir movimiento" en su sistema,
+   apagamos las animaciones y transiciones de CSS. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

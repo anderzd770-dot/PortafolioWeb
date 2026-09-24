@@ -1,0 +1,393 @@
+/* =========================================================
+   PÁGINA DE INICIO — la órbita de mundos
+   ========================================================= */
+
+.inicio {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----- Texto de presentación ----- */
+.intro {
+  padding: 1rem var(--margen-lateral) 0;
+}
+
+.intro__etiqueta {
+  margin: 0 0 0.5rem;
+  color: var(--color-acento);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.intro__titulo {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.intro__pista {
+  margin: 0.75rem 0 0;
+  color: var(--color-texto-suave);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+/* En pantallas grandes: título a la izquierda y la pista a la derecha, en una fila */
+@media (min-width: 900px) {
+  .intro {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    column-gap: 2rem;
+  }
+
+  .intro__etiqueta {
+    grid-column: 1 / -1;
+  }
+
+  .intro__pista {
+    margin: 0;
+  }
+}
+
+/* ----- Escenario de la órbita ----- */
+.orbita {
+  /* Tamaño de los planetas: mínimo 58px, ideal 8% del ancho, máximo 104px */
+  --tam-planeta: clamp(58px, 8vw, 104px);
+
+  position: relative;
+  isolation: isolate; /* los z-index de dentro no se mezclan con el resto */
+  flex: 1;
+  min-height: 520px;
+  display: grid;
+  place-items: center;
+  gap: 2.5rem;
+  padding: 2rem var(--margen-lateral);
+  overflow: hidden;
+
+  /* Rejilla de puntos de fondo */
+  background-image: radial-gradient(var(--color-punto) 1px, transparent 1.5px);
+  background-size: 28px 28px;
+}
+
+/* ----- Logo central ----- */
+.orbita__logo {
+  position: relative;
+  width: clamp(120px, 17vw, 210px);
+  color: var(--color-texto);
+}
+
+/* Resplandor suave detrás del logo */
+.orbita__logo::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(242, 179, 91, 0.12), transparent 60%);
+}
+
+.logo__texto {
+  fill: var(--color-texto-suave);
+  font-family: var(--fuente);
+  font-size: 11px;
+  letter-spacing: 1px;
+  transform-origin: 100px 100px; /* el centro del SVG */
+  animation: girar 40s linear infinite;
+}
+
+.logo__disco {
+  fill: var(--color-superficie);
+  stroke: var(--color-linea);
+  stroke-width: 1.5;
+}
+
+.logo__letra {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 11;
+  stroke-linecap: square;
+}
+
+.logo__orbita {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.4;
+}
+
+.logo__luna {
+  fill: var(--color-acento);
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ----- Lista de mundos (versión sin JavaScript: cuadrícula) ----- */
+.orbita__lista {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.orbita__anillo {
+  display: none;
+}
+
+/* ----- Planeta ----- */
+.planeta__enlace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.planeta__enlace:focus-visible {
+  outline: none; /* el contorno lo dibujamos en la esfera */
+}
+
+.planeta__esfera {
+  position: relative;
+  display: block;
+  width: var(--tam-planeta);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  /* Cada planeta define --superficie y --brillo más abajo */
+  background: var(--superficie);
+  /* Sombra interior = lado oscuro del planeta; sombra exterior = brillo */
+  box-shadow:
+    inset calc(var(--tam-planeta) * -0.12) calc(var(--tam-planeta) * -0.14)
+      calc(var(--tam-planeta) * 0.3) rgba(0, 0, 0, 0.65),
+    0 0 calc(var(--tam-planeta) * 0.4) var(--brillo);
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.planeta__enlace:hover .planeta__esfera,
+.planeta__enlace:focus-visible .planeta__esfera {
+  transform: scale(1.15);
+}
+
+.planeta__enlace:focus-visible .planeta__esfera {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 8px;
+}
+
+.planeta__nombre {
+  width: 9rem;
+  color: var(--color-texto-suave);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-align: center;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+
+.planeta__enlace:hover .planeta__nombre,
+.planeta__enlace:focus-visible .planeta__nombre {
+  color: var(--color-texto);
+}
+
+.planeta__estado {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--color-acento);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  opacity: 0.75;
+}
+
+/* Mundos que aún no existen: más apagados */
+.planeta[data-estado="proximamente"] .planeta__esfera {
+  filter: grayscale(0.6) brightness(0.7);
+}
+
+.planeta[data-estado="proximamente"] .planeta__enlace:hover .planeta__esfera {
+  filter: grayscale(0.2) brightness(0.9);
+}
+
+/* Mundo activo: una onda que "late" para invitar a hacer clic */
+.planeta[data-estado="activo"] .planeta__esfera::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  border: 1px solid var(--color-acento);
+  border-radius: 50%;
+  animation: latido 2.6s ease-out infinite;
+}
+
+@keyframes latido {
+  from {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   LOS PLANETAS — diseños originales inspirados en el
+   ambiente de cada juego (solo colores y texturas).
+   ========================================================= */
+
+/* Outer Wilds: sol cálido y mar verdoso, con un anillo */
+.planeta--outer-wilds {
+  --superficie: radial-gradient(circle at 35% 30%, #ffd39a, #f08a4b 35%, #2e7d7a 70%, #123a3f);
+  --brillo: rgba(240, 138, 75, 0.35);
+}
+
+.planeta--outer-wilds .planeta__esfera::before {
+  content: "";
+  position: absolute;
+  inset: 38% -30%;
+  border: 3px solid rgba(255, 220, 170, 0.7);
+  border-top-color: transparent; /* la parte de arriba "pasa por detrás" */
+  border-radius: 50%;
+  transform: rotate(-18deg);
+}
+
+/* Hollow Knight: luna pálida y fría, con reflejos azulados */
+.planeta--hollow-knight {
+  --superficie: radial-gradient(circle at 35% 30%, #f3f6fb, #9aaac4 40%, #3a4660 70%, #141a28);
+  --brillo: rgba(160, 185, 230, 0.35);
+}
+
+/* Elden Ring: oro intenso con un halo dorado */
+.planeta--elden-ring {
+  --superficie: radial-gradient(circle at 35% 30%, #fff4c7, #e0b04a 40%, #8a5f18 70%, #2e1e06);
+  --brillo: rgba(240, 190, 80, 0.55);
+}
+
+/* Cyberpunk 2077: amarillo y cian con líneas de "pantalla" */
+.planeta--cyberpunk {
+  --superficie:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 5px),
+    radial-gradient(circle at 35% 30%, #f7f06d, #3fe0d0 45%, #7a2a8c 75%, #1a0f2e);
+  --brillo: rgba(63, 224, 208, 0.4);
+}
+
+/* The Witcher 3: plateado y rojo oscuro, con cráteres */
+.planeta--witcher {
+  --superficie:
+    radial-gradient(circle at 60% 35%, rgba(0, 0, 0, 0.35) 0 7%, transparent 8%),
+    radial-gradient(circle at 40% 65%, rgba(0, 0, 0, 0.3) 0 5%, transparent 6%),
+    radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.25) 0 4%, transparent 5%),
+    radial-gradient(circle at 35% 30%, #eeeeee, #9a9a9a 35%, #7a2323 65%, #1c1111);
+  --brillo: rgba(200, 60, 60, 0.3);
+}
+
+/* Ocarina of Time: bosque verde y luz dorada */
+.planeta--ocarina {
+  --superficie: radial-gradient(circle at 35% 30%, #e4f7b0, #5fb85a 40%, #1f6b3a 70%, #0b2716);
+  --brillo: rgba(110, 200, 110, 0.35);
+}
+
+/* Black Myth: Wukong: piedra rojiza y nubes de fuego */
+.planeta--wukong {
+  --superficie:
+    radial-gradient(ellipse at 70% 60%, rgba(255, 200, 120, 0.35), transparent 40%),
+    radial-gradient(circle at 35% 30%, #ffd08a, #c0602d 40%, #6b2b14 70%, #240d05);
+  --brillo: rgba(220, 110, 50, 0.4);
+}
+
+/* =========================================================
+   MODO ÓRBITA — se activa cuando el JavaScript añade
+   la clase .orbita--viva a la sección.
+   ========================================================= */
+.orbita--viva {
+  display: block;
+  cursor: grab;
+  touch-action: pan-y; /* en móvil: deslizar en vertical sigue haciendo scroll */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.orbita--arrastrando {
+  cursor: grabbing;
+}
+
+/* Logo fijo en el centro, por encima de los planetas que están "detrás" */
+.orbita--viva .orbita__logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Elipse que marca el camino de la órbita */
+.orbita--viva .orbita__anillo {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: calc(var(--radio-x, 0px) * 2);
+  height: calc(var(--radio-y, 0px) * 2);
+  border: 1px solid var(--color-linea);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.orbita--viva .orbita__mundos,
+.orbita--viva .orbita__lista {
+  position: absolute;
+  inset: 0;
+}
+
+/* Todos los planetas empiezan en el centro; el JS los mueve con transform */
+.orbita--viva .planeta {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  will-change: transform, opacity;
+}
+
+.orbita--viva .planeta__enlace {
+  position: relative;
+  cursor: inherit;
+}
+
+.orbita--viva a.planeta__enlace {
+  cursor: pointer;
+}
+
+/* El nombre cuelga debajo de la esfera sin cambiar el tamaño del planeta */
+.orbita--viva .planeta__nombre {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ----- Móvil ----- */
+@media (max-width: 600px) {
+  .menu {
+    gap: 1rem;
+  }
+
+  .orbita {
+    min-height: 480px;
+  }
+
+  .planeta__nombre {
+    width: 7rem;
+    font-size: 0.62rem;
+  }
+}

@@ -1,0 +1,19 @@
+# .gitignore — lista de archivos que Git NO debe guardar
+
+# Configuración personal de Claude en este ordenador (permisos, rutas locales)
+.claude/
+
+# Archivos basura que crean Windows y macOS automáticamente
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Configuración personal de editores
+.vscode/
+.idea/
+
+# Originales pesados sin comprimir: guarda aquí tus grabaciones antes de convertirlas a WebP/WebM
+**/media/originales/
+
+# Instrucciones personales para Claude (contienen datos privados)
+CLAUDE.md

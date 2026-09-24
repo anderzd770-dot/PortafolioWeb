@@ -1,0 +1,10 @@
+# Usar siempre saltos de línea LF (estilo Linux), trabajes en Windows u Omarchy
+* text=auto eol=lf
+
+# Archivos binarios: Git no debe tocarlos
+*.webp binary
+*.png binary
+*.jpg binary
+*.webm binary
+*.mp4 binary
+*.woff2 binary

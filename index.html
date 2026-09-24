@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ludwig — Portafolio de mundos</title>
+  <meta name="description" content="Portafolio de Ludwig: los mundos de videojuegos que me inspiran a crear juegos.">
+
+  <!-- Tipografía: Space Grotesk (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos compartidos por todo el sitio + estilos propios del inicio -->
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/inicio.css">
+</head>
+<body>
+
+  <!-- ===== Cabecera (igual en todas las páginas) ===== -->
+  <header class="cabecera">
+    <a href="./" class="cabecera__marca">Ludwig</a>
+    <nav aria-label="Menú principal">
+      <ul class="menu">
+        <li><a href="./" aria-current="page">Inicio</a></li>
+        <li><a href="sobre-mi/">Sobre mí</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="inicio">
+
+    <!-- Texto de presentación (cámbialo por el tuyo) -->
+    <div class="intro">
+      <p class="intro__etiqueta">Portafolio · Diseño de videojuegos</p>
+      <h1 class="intro__titulo">Los mundos que me hicieron querer crear juegos</h1>
+      <p class="intro__pista">Arrastra para girar · Elige un mundo</p>
+    </div>
+
+    <!-- ===== La órbita: logo en el centro + mundos alrededor ===== -->
+    <section class="orbita" aria-label="Selector de mundos">
+
+      <!-- Línea de la órbita (solo decorativa; el JS le da su tamaño) -->
+      <div class="orbita__anillo" aria-hidden="true"></div>
+
+      <!-- Logo central: monograma "L" con una pequeña órbita, hecho en SVG -->
+      <div class="orbita__logo">
+        <svg viewBox="0 0 200 200" role="img" aria-labelledby="logo-titulo">
+          <title id="logo-titulo">Ludwig</title>
+          <defs>
+            <!-- Círculo invisible que sirve de "camino" para el texto -->
+            <path id="logo-circulo" d="M100,100 m-86,0 a86,86 0 1,1 172,0 a86,86 0 1,1 -172,0" />
+          </defs>
+
+          <!-- Texto que gira alrededor del logo -->
+          <g class="logo__texto">
+            <text>
+              <textPath href="#logo-circulo" textLength="535" lengthAdjust="spacing">LUDWIG • PORTAFOLIO • MUNDOS •</textPath>
+            </text>
+          </g>
+
+          <!-- Disco central -->
+          <circle class="logo__disco" cx="100" cy="100" r="66" />
+
+          <!-- La letra L -->
+          <path class="logo__letra" d="M84 62 V134 H122" />
+
+          <!-- Pequeña órbita inclinada con su "luna" -->
+          <g transform="rotate(-20 100 100)">
+            <ellipse class="logo__orbita" cx="100" cy="100" rx="60" ry="18" />
+            <circle class="logo__luna" cx="146" cy="88.4" r="6" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Lista de mundos. Sin JavaScript se ve como una cuadrícula normal. -->
+      <nav class="orbita__mundos" aria-label="Mundos">
+        <ul class="orbita__lista">
+
+          <li class="planeta planeta--outer-wilds" data-estado="activo">
+            <a class="planeta__enlace" href="outer-wilds/">
+              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__nombre">Outer Wilds</span>
+            </a>
+          </li>
+
+          <li class="planeta planeta--hollow-knight" data-estado="proximamente">
+            <div class="planeta__enlace">
+              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__nombre">Hollow Knight <span class="planeta__estado">Próximamente</span></span>
+            </div>
+          </li>
+
+          <li class="planeta planeta--elden-ring" data-estado="proximamente">
+            <div class="planeta__enlace">
+              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__nombre">Elden Ring <span class="planeta__estado">Próximamente</span></span>
+            </div>
+          </li>
+
+          <li class="planeta planeta--cyberpunk" data-estado="proximamente">
+            <div class="planeta__enlace">
+              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__nombre">Cyberpunk 2077 <span class="planeta__estado">Próximamente</span></span>
+            </div>
+          </li>
+
+          <li class="planeta planeta--witcher" data-estado="proximamente">
+            <div class="planeta__enlace">
+              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__nombre">The Witcher 3 <span class="planeta__estado">Próximamente</span></span>
+            </div>
+          </li>
+
+          <li class="planeta planeta--ocarina" data-estado="proximamente">
+            <div class="planeta__enlace">
+              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__nombre">Zelda: Ocarina of Time <span class="planeta__estado">Próximamente</span></span>
+            </div>
+          </li>
+
+          <li class="planeta planeta--wukong" data-estado="proximamente">
+            <div class="planeta__enlace">
+              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__nombre">Black Myth: Wukong <span class="planeta__estado">Próximamente</span></span>
+            </div>
+          </li>
+
+        </ul>
+      </nav>
+    </section>
+  </main>
+
+  <!-- ===== Pie ===== -->
+  <footer class="pie">
+    <p>© 2026 Ludwig</p>
+    <p>Portafolio personal y gratuito. Los nombres de los juegos pertenecen a sus respectivos estudios.</p>
+  </footer>
+
+  <script src="js/global.js" defer></script>
+  <script src="js/orbita.js" defer></script>
+</body>
+</html>
