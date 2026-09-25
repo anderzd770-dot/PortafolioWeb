@@ -12,7 +12,6 @@
   --color-texto-suave: #8e8c9c;  /* texto secundario */
   --color-acento: #f2b35b;       /* color de acento (detalles, foco) */
   --color-linea: rgba(255, 255, 255, 0.12); /* líneas finas y bordes */
-  --color-punto: rgba(255, 255, 255, 0.07); /* puntos de la rejilla de fondo */
 
   --fuente: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   --margen-lateral: clamp(1rem, 4vw, 2.5rem);

@@ -6,16 +6,19 @@
   <title>Ludwig — Portafolio de mundos</title>
   <meta name="description" content="Portafolio de Ludwig: los mundos de videojuegos que me inspiran a crear juegos.">
 
-  <!-- Tipografía: Space Grotesk (Google Fonts) -->
+  <!-- Tipografía (Google Fonts): Space Grotesk para todo el sitio y Grenze para la carta -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Grenze:wght@500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- Estilos compartidos por todo el sitio + estilos propios del inicio -->
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/inicio.css">
 </head>
 <body>
+
+  <!-- Cielo de estrellas de píxeles detrás de toda la página (js/fondo-estrellas.js) -->
+  <canvas class="fondo-estrellas" aria-hidden="true"></canvas>
 
   <!-- ===== Cabecera (igual en todas las páginas) ===== -->
   <header class="cabecera">
@@ -32,45 +35,110 @@
 
     <!-- Texto de presentación (cámbialo por el tuyo) -->
     <div class="intro">
-      <p class="intro__etiqueta">Portafolio · Diseño de videojuegos</p>
       <h1 class="intro__titulo">Los mundos que me hicieron querer crear juegos</h1>
       <p class="intro__pista">Arrastra para girar · Elige un mundo</p>
     </div>
 
     <!-- ===== La órbita: logo en el centro + mundos alrededor ===== -->
-    <section class="orbita" aria-label="Selector de mundos">
+    <!-- data-inclinacion y data-giro los comparten el disco del agujero negro y la órbita
+         de los planetas: cámbialos aquí y ambos se mueven juntos, en el mismo plano.
+         inclinación: 0 = de canto (una línea), 1 = visto desde arriba · giro: en radianes -->
+    <section class="orbita" aria-label="Selector de mundos" data-inclinacion="0.27" data-giro="-0.16">
 
       <!-- Línea de la órbita (solo decorativa; el JS le da su tamaño) -->
       <div class="orbita__anillo" aria-hidden="true"></div>
 
-      <!-- Logo central: monograma "L" con una pequeña órbita, hecho en SVG -->
-      <div class="orbita__logo">
-        <svg viewBox="0 0 200 200" role="img" aria-labelledby="logo-titulo">
-          <title id="logo-titulo">Ludwig</title>
-          <defs>
-            <!-- Círculo invisible que sirve de "camino" para el texto -->
-            <path id="logo-circulo" d="M100,100 m-86,0 a86,86 0 1,1 172,0 a86,86 0 1,1 -172,0" />
-          </defs>
+      <!-- Centro: agujero negro de "píxeles" + la L-dragón de cromo en 3D -->
+      <div class="orbita__logo agujero">
 
-          <!-- Texto que gira alrededor del logo -->
-          <g class="logo__texto">
-            <text>
-              <textPath href="#logo-circulo" textLength="535" lengthAdjust="spacing">LUDWIG • PORTAFOLIO • MUNDOS •</textPath>
-            </text>
-          </g>
+        <!-- Lienzo de atrás: la mitad trasera del disco, el halo y el agujero (js/agujero-negro.js) -->
+        <canvas class="agujero__lienzo" aria-hidden="true"></canvas>
 
-          <!-- Disco central -->
-          <circle class="logo__disco" cx="100" cy="100" r="66" />
+        <!-- La L-dragón de cromo líquido en 3D: varias capas apiladas en profundidad.
+             Las de atrás (más oscuras) forman el grosor; la de delante lleva el cromo. -->
+        <div class="letra3d" aria-hidden="true">
+          <div class="letra3d__cuerpo">
+            <svg class="letra3d__capa" style="--capa: 6" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
+            <svg class="letra3d__capa" style="--capa: 5" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
+            <svg class="letra3d__capa" style="--capa: 4" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
+            <svg class="letra3d__capa" style="--capa: 3" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
+            <svg class="letra3d__capa" style="--capa: 2" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
+            <svg class="letra3d__capa" style="--capa: 1" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
 
-          <!-- La letra L -->
-          <path class="logo__letra" d="M84 62 V134 H122" />
+            <!-- Cara de delante -->
+            <svg class="letra3d__frente" viewBox="10 -5 100 100">
+              <defs>
+                <!-- La forma de la L-dragón (las capas de atrás la reutilizan con <use>):
+                     el palo es el cuerpo y arriba la cabeza, con una oreja larga; el pie es la cola.
+                     El último trocito (M51 12.6...) es el ojo: un hueco gracias a fill-rule="evenodd". -->
+                <path id="forma-l" fill-rule="evenodd" d="M64 12 C58 14 54 16 52 17 C55 18 58 19 60 21 C55 22 50 22 48 24 C48 28 48 32 49 36 C52 35 55 33 58 29 C56 36 52 40 50 44 C51 52 51 60 50 66 C60 67 76 63 96 48 C82 64 72 71 64 74 C65 78 66 81 68 84 C63 82 60 79 57 76 C51 78 45 80 40 82 C36 85 32 88 28 90 C31 86 35 82 39 76 C38 62 41 40 43 26 C43 22 43.5 19 44 17 C38 12 30 5 19 -3 C31 2 40 7 48 11 C54 9 60 10 64 12 Z M51 12.6 L55.5 11.8 L53.6 14 Z" />
+                <!-- Degradado de cromo: blancos y platas con bandas oscuras, como metal líquido -->
+                <linearGradient id="cromo" x1="0" y1="0" x2="30" y2="100" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
+                  <stop offset="0" stop-color="#ffffff" />
+                  <stop offset="0.18" stop-color="#dbe4f4" />
+                  <stop offset="0.32" stop-color="#6c7996" />
+                  <stop offset="0.44" stop-color="#3a4665" />
+                  <stop offset="0.52" stop-color="#2a3350" />
+                  <stop offset="0.62" stop-color="#a3b3d3" />
+                  <stop offset="0.74" stop-color="#ffffff" />
+                  <stop offset="0.88" stop-color="#8190b2" />
+                  <stop offset="1" stop-color="#ffffff" />
+                  <!-- Desliza el degradado: los reflejos "fluyen" como en un líquido -->
+                  <animateTransform attributeName="gradientTransform" type="translate"
+                    values="0 0; 30 100" dur="8s" repeatCount="indefinite" />
+                </linearGradient>
+              </defs>
+              <use class="letra3d__cromo" href="#forma-l" />
+              <!-- El ojo: apagado mientras duerme, se enciende al despertar (pasar el ratón) -->
+              <path class="letra3d__ojo" d="M51 12.6 L55.5 11.8 L53.6 14 Z" />
+            </svg>
+          </div>
+        </div>
 
-          <!-- Pequeña órbita inclinada con su "luna" -->
-          <g transform="rotate(-20 100 100)">
-            <ellipse class="logo__orbita" cx="100" cy="100" rx="60" ry="18" />
-            <circle class="logo__luna" cx="146" cy="88.4" r="6" />
-          </g>
+        <!-- Lienzo de delante: la mitad delantera del disco va ENCIMA de la L,
+             para que los píxeles que pasan por delante del agujero también tapen la letra -->
+        <canvas class="agujero__lienzo agujero__lienzo--delante" aria-hidden="true"></canvas>
+
+        <!-- Zona invisible encima del agujero: al pasar el ratón (o tocarla en móvil)
+             aparece la presentación. Es un botón para que funcione también con teclado. -->
+        <button class="agujero__zona" type="button" aria-label="Ludwig: sobre mí"
+                aria-expanded="false" aria-controls="presentacion"></button>
+
+      </div>
+
+      <!-- La presentación: una carta de tarot que sale del agujero al despertar al dragón.
+           Es la carta 0 (en el tarot, "El Loco": el viajero que empieza su camino).
+           Cambia los textos por los tuyos. -->
+      <div class="carta" id="presentacion">
+
+        <!-- Adorno de esquina: se dibuja una vez y se reutiliza (girado) en las cuatro -->
+        <svg class="carta__defs" aria-hidden="true">
+          <symbol id="adorno-esquina" viewBox="0 0 28 28">
+            <path d="M8 20 L20 8" />                       <!-- corte de la esquina del marco -->
+            <path d="M3 15 L15 3" opacity="0.45" />          <!-- una línea paralela más tenue -->
+            <path d="M8 3.5 L12.5 8 L8 12.5 L3.5 8 Z" class="carta__diamante" />
+          </symbol>
         </svg>
+        <svg class="carta__esquina carta__esquina--1" aria-hidden="true"><use href="#adorno-esquina" /></svg>
+        <svg class="carta__esquina carta__esquina--2" aria-hidden="true"><use href="#adorno-esquina" /></svg>
+        <svg class="carta__esquina carta__esquina--3" aria-hidden="true"><use href="#adorno-esquina" /></svg>
+        <svg class="carta__esquina carta__esquina--4" aria-hidden="true"><use href="#adorno-esquina" /></svg>
+
+        <span class="carta__numero" aria-hidden="true">0</span>
+
+        <!-- El "arte" de la carta: el agujero negro en semitono (todo con CSS) -->
+        <div class="carta__arte" aria-hidden="true"></div>
+
+        <p class="carta__texto">
+          Soy Ludwig. Estoy aprendiendo a crear videojuegos y quiero estudiarlo en Alemania.
+          Cada planeta es un mundo que me marcó: entra y descubre por qué.
+        </p>
+
+        <!-- La placa del nombre, como el título de una carta -->
+        <div class="carta__placa">
+          <p class="carta__nombre">Ludwig</p>
+          <p class="carta__oficio">Diseño de videojuegos</p>
+        </div>
       </div>
 
       <!-- Lista de mundos. Sin JavaScript se ve como una cuadrícula normal. -->
@@ -139,5 +207,7 @@
 
   <script src="js/global.js" defer></script>
   <script src="js/orbita.js" defer></script>
+  <script src="js/agujero-negro.js" defer></script>
+  <script src="js/fondo-estrellas.js" defer></script>
 </body>
 </html>
