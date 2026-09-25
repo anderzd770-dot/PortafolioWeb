@@ -35,11 +35,6 @@ const COLOR_PIXEL = "#dff6fa";  // blanco con un toque de cian
 // La L-dragón
 const BALANCEO_GRADOS = 20;     // cuánto se balancea de lado a lado mientras duerme
 const DURACION_BALANCEO = 7;    // segundos que tarda en ir y volver
-const ALIENTO_POR_SEGUNDO = 140; // píxeles que exhala por segundo al despertar
-const DURACION_ALIENTO = 1.6;   // segundos que vive cada píxel del aliento
-const MAX_ALIENTO = 400;        // límite de píxeles de aliento a la vez
-const COLOR_ALIENTO = "#E7180B";      // color del aliento al salir (azul hielo, como los reflejos del cromo)
-const COLOR_ALIENTO_FRIO = "#c2412d"; // color del aliento al apagarse (azul acero)
 const FPS = 30;                 // fotogramas por segundo
 
 // Estrellas atrapadas (fondo-estrellas.js nos las manda cuando pasan cerca)
@@ -57,7 +52,6 @@ const lienzoDelante = agujero.querySelector(".agujero__lienzo--delante");
 const ctx = lienzo.getContext("2d");
 const ctxDelante = lienzoDelante.getContext("2d");
 const letra = agujero.querySelector(".letra3d__frente");
-const letra3d = agujero.querySelector(".letra3d");
 const zona = agujero.querySelector(".agujero__zona"); // la zona del ratón, encima del agujero
 const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -79,7 +73,6 @@ let centroY = 0;
 let radioAgujero = 0;
 let rejilla = 3;     // tamaño de cada "celda" de píxel
 let brillo = null;   // resplandor alrededor del agujero
-let tamLetra = 0;    // lado del cuadro de la L (para saber dónde está su boca)
 
 function medir() {
   // Dibujamos a resolución normal (1x) aunque la pantalla sea "retina": como todo son
@@ -91,7 +84,6 @@ function medir() {
   centroX = ancho / 2;
   centroY = alto / 2;
   radioAgujero = alto * 0.12;
-  tamLetra = letra3d.offsetWidth;
   rejilla = Math.max(2, Math.round((alto / 120) * TAMANO_PIXEL));
 
   for (const l of [lienzo, lienzoDelante]) {
@@ -216,11 +208,10 @@ function pintarColores(mapa, contexto = ctx) {
 }
 
 // ----- El dragón despierta -----
-// Al pasar el ratón (o tocar, o llegar con Tab) el dragón deja de balancearse, te mira,
-// se le enciende el ojo y exhala un aliento de píxeles.
+// Al pasar el ratón (o tocar, o llegar con Tab) el dragón deja de balancearse, te mira
+// y se le enciende el ojo.
 let despertar = 0; // 0 = dormido, 1 = despierto. Cambia poco a poco, nunca de golpe
-let tiempo = 0;    // segundos de animación (para el balanceo y el campo del aliento)
-const aliento = [];
+let tiempo = 0;    // segundos de animación (para el balanceo)
 
 function estaDespierto() {
   return zona.matches(":hover") || zona.matches(":focus-visible") || agujero.classList.contains("agujero--abierto");
@@ -231,50 +222,6 @@ function moverLetra() {
   const balanceo = Math.sin((tiempo / DURACION_BALANCEO) * Math.PI * 2) * BALANCEO_GRADOS * (1 - despertar);
   agujero.style.setProperty("--balanceo", balanceo.toFixed(2) + "deg");
   agujero.style.setProperty("--despertar", despertar.toFixed(3));
-}
-
-// Dónde está la boca del dragón, en píxeles del lienzo.
-// En el dibujo de la L la boca está en (60, 17), y el SVG enseña de (10, -5) a (110, 95).
-function posicionBoca() {
-  const escala = 1 + despertar * 0.15; // la L crece al despertar (igual que en el CSS)
-  const dx = ((60 - 10) / 100 - 0.5) * tamLetra * escala;
-  const dy = ((17 + 5) / 100 - 0.5) * tamLetra * escala;
-  // La L está girada como el disco: giramos también el punto de la boca
-  return { x: centroX + dx * COS_GIRO - dy * SIN_GIRO, y: centroY + dx * SIN_GIRO + dy * COS_GIRO };
-}
-
-// Echa píxeles por la boca y mueve los que ya salieron
-function moverAliento(pasos) {
-  if (despertar > 0.6) {
-    const boca = posicionBoca();
-    let nuevos = (ALIENTO_POR_SEGUNDO * pasos) / 60;
-    while (nuevos > 0 && aliento.length < MAX_ALIENTO) {
-      if (nuevos < 1 && Math.random() > nuevos) break; // la parte decimal, a suertes
-      nuevos--;
-      // Sale del hocico hacia delante (a la derecha y un poco abajo), abierto en abanico
-      const direccion = GIRO_DISCO + 0.2 + (Math.random() - 0.5) * 0.7;
-      const rapidez = radioAgujero * 0.03 * (0.6 + Math.random() * 0.8);
-      aliento.push({ x: boca.x, y: boca.y, vx: Math.cos(direccion) * rapidez, vy: Math.sin(direccion) * rapidez, vida: 0 });
-    }
-  }
-
-  for (let i = aliento.length - 1; i >= 0; i--) {
-    const a = aliento[i];
-    // "Campo de ondas": cada punto del espacio empuja hacia un lado que cambia con el tiempo.
-    // Así el aliento se curva y se enrosca como humo, y dos soplidos nunca son iguales.
-    const campo =
-      Math.sin((a.x / radioAgujero) * 3 + tiempo * 1.7) + Math.cos((a.y / radioAgujero) * 4 - tiempo * 1.3);
-    const empuje = radioAgujero * 0.0012 * pasos;
-    a.vx += Math.cos(campo * 2) * empuje;
-    a.vy += Math.sin(campo * 2) * empuje - radioAgujero * 0.0004 * pasos; // sube un poco, como el calor
-    const freno = 0.97 ** pasos; // el aire lo frena
-    a.vx *= freno;
-    a.vy *= freno;
-    a.x += a.vx * pasos;
-    a.y += a.vy * pasos;
-    a.vida += pasos / (60 * DURACION_ALIENTO);
-    if (a.vida >= 1) aliento.splice(i, 1);
-  }
 }
 
 // ----- Dibujar un fotograma -----
@@ -371,17 +318,6 @@ function dibujar() {
   ctxDelante.clearRect(0, 0, ancho, alto);
   pintar(delante, ctxDelante);
   pintarColores(atrapadasDelante, ctxDelante);
-
-  // El aliento del dragón, delante de todo: azul hielo al salir, azul acero al apagarse
-  const alientoCaliente = new Path2D();
-  const alientoFrio = new Path2D();
-  for (const a of aliento) {
-    ponerPixel(a.vida < 0.35 ? alientoCaliente : alientoFrio, a.x, a.y, (1 - a.vida) ** 1.5 * 1.1);
-  }
-  ctxDelante.fillStyle = COLOR_ALIENTO;
-  ctxDelante.fill(alientoCaliente);
-  ctxDelante.fillStyle = COLOR_ALIENTO_FRIO;
-  ctxDelante.fill(alientoFrio);
 }
 
 // Añade un cuadradito al trazado, "encajado" en la rejilla (esto da el aspecto de píxeles)
@@ -430,7 +366,6 @@ function animar(ahora) {
   tiempo += pasos / 60;
   despertar += ((estaDespierto() ? 1 : 0) - despertar) * Math.min(1, 0.12 * pasos);
   moverLetra();
-  moverAliento(pasos);
 
   dibujar();
 }
@@ -479,24 +414,56 @@ new IntersectionObserver(([entrada]) => {
 // Si la persona activa o desactiva "reducir movimiento", lo respetamos al momento
 sinMovimiento.addEventListener("change", arrancar);
 
-// ----- Presentación: abrir y cerrar al tocar el agujero -----
-// Con ratón basta con pasar por encima (lo hace el CSS). En móvil no hay "encima",
-// así que un toque la abre y otro la cierra.
+// ----- Presentación: la carta aparece al apuntar al agujero -----
+// Con ratón: basta con apuntar; al quitar el ratón vuelve al agujero.
+// En móvil no se puede "apuntar", así que un toque la saca y otro la guarda.
+// Con teclado: Enter la saca y Escape la guarda.
+const ESPERA_APUNTAR = 150; // milisegundos apuntando antes de sacarla (así no salta al pasar de largo)
 let xPulsado = 0;
+let punteroPulsado = "";
+let esperaApuntar = null;
 
 function mostrarPresentacion(abrir) {
   agujero.classList.toggle("agujero--abierto", abrir);
   zona.setAttribute("aria-expanded", abrir); // avisa a los lectores de pantalla
+  window.mostrarCarta?.(abrir); // la carta se forma o vuelve al agujero (js/carta.js)
 }
+
+// ¿Está el punto (x, y) dentro del círculo de la zona? Lo medimos con geometría
+// porque cuando un planeta pasa por delante, el navegador cree que el ratón "salió"
+function dentroDeLaZona(x, y) {
+  const caja = zona.getBoundingClientRect();
+  const radio = caja.width / 2;
+  return Math.hypot(x - (caja.left + radio), y - (caja.top + radio)) <= radio;
+}
+
+// Apuntar con el ratón: la saca (tras una pequeña espera)
+zona.addEventListener("pointerenter", (evento) => {
+  if (evento.pointerType !== "mouse") return;
+  clearTimeout(esperaApuntar);
+  esperaApuntar = setTimeout(() => mostrarPresentacion(true), ESPERA_APUNTAR);
+});
+
+// Dejar de apuntar: la guarda (solo si el ratón salió de verdad del círculo)
+window.addEventListener("pointermove", (evento) => {
+  if (evento.pointerType !== "mouse" || dentroDeLaZona(evento.clientX, evento.clientY)) return;
+  clearTimeout(esperaApuntar);
+  if (agujero.classList.contains("agujero--abierto")) mostrarPresentacion(false);
+});
 
 zona.addEventListener("pointerdown", (evento) => {
   xPulsado = evento.clientX;
+  punteroPulsado = evento.pointerType;
 });
 
 zona.addEventListener("click", (evento) => {
-  // Si la persona estaba arrastrando la órbita, no es un toque: no hacemos nada.
-  // (evento.detail es 0 cuando el clic viene del teclado)
-  if (evento.detail > 0 && Math.abs(evento.clientX - xPulsado) > 5) return;
+  const delTeclado = evento.detail === 0; // evento.detail es 0 cuando el clic viene del teclado
+  if (!delTeclado) {
+    // Con ratón ya se encarga "apuntar": el clic no hace nada
+    if (punteroPulsado === "mouse") return;
+    // Si la persona estaba arrastrando la órbita, no es un toque: no hacemos nada
+    if (Math.abs(evento.clientX - xPulsado) > 5) return;
+  }
   mostrarPresentacion(!agujero.classList.contains("agujero--abierto"));
 });
 
