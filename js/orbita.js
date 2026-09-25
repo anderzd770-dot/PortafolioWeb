@@ -10,8 +10,7 @@
 
 // ----- Ajustes (¡prueba a cambiarlos!) -----
 const VELOCIDAD = 0.0015;            // giro automático (radianes por fotograma)
-const INCLINACION = 0.34;            // 0 = órbita plana como una línea, 1 = círculo visto desde arriba
-const INCLINACION_MOVIL = 0.95;      // en pantallas estrechas la elipse es más redonda
+const INCLINACION_MOVIL = 0.95;      // en pantallas estrechas la elipse es más redonda (si no, los planetas se amontonan)
 const ESCALA_FONDO = 0.6;            // tamaño de los planetas de atrás (1 = igual que los de delante)
 const OPACIDAD_FONDO = 0.35;         // opacidad de los planetas de atrás
 const SENSIBILIDAD_ARRASTRE = 0.005; // cuánto gira por cada píxel arrastrado
@@ -22,6 +21,13 @@ const FRICCION = 0.94;               // frenado tras soltar: 0.9 frena rápido, 
 const orbita = document.querySelector(".orbita");
 const planetas = Array.from(orbita.querySelectorAll(".planeta"));
 const menosMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+// Inclinación y giro de la órbita: se leen del HTML (data-inclinacion y data-giro).
+// Son los mismos que usa el disco del agujero negro, así todo gira en el mismo plano.
+const INCLINACION = parseFloat(orbita.dataset.inclinacion);
+const GIRO = parseFloat(orbita.dataset.giro);
+const COS_GIRO = Math.cos(GIRO);
+const SIN_GIRO = Math.sin(GIRO);
 
 // ----- Estado de la animación -----
 const SEPARACION = (Math.PI * 2) / planetas.length; // ángulo entre planetas
@@ -51,11 +57,14 @@ function calcularRadios() {
   // Dejamos margen para que los planetas y sus nombres no se salgan por los lados
   const margen = Math.max(tamPlaneta * 0.8, anchoNombre * 0.45);
   radioX = Math.min(ancho / 2 - margen, 560);
-  radioY = Math.min(radioX * inclinacion, alto / 2 - tamPlaneta * 1.1);
+  // Al torcer la elipse, sus extremos suben y bajan: restamos ese extra al alto disponible
+  const extraGiro = radioX * Math.abs(SIN_GIRO);
+  radioY = Math.min(radioX * inclinacion, alto / 2 - tamPlaneta * 1.1 - extraGiro);
 
   // Pasamos los radios al CSS para dibujar la línea de la órbita
   orbita.style.setProperty("--radio-x", radioX + "px");
   orbita.style.setProperty("--radio-y", radioY + "px");
+  orbita.style.setProperty("--giro", GIRO + "rad");
 }
 
 // ----- Colocar cada planeta en su sitio -----
@@ -63,9 +72,12 @@ function colocarPlanetas() {
   planetas.forEach((planeta, i) => {
     const angulo = rotacion + i * SEPARACION;
 
-    // Posición en la elipse
-    const x = Math.cos(angulo) * radioX;
-    const y = Math.sin(angulo) * radioY;
+    // Posición en la elipse...
+    const ex = Math.cos(angulo) * radioX;
+    const ey = Math.sin(angulo) * radioY;
+    // ...y la torcemos con el mismo giro que el disco del agujero negro
+    const x = ex * COS_GIRO - ey * SIN_GIRO;
+    const y = ex * SIN_GIRO + ey * COS_GIRO;
 
     // Profundidad: 1 = delante (abajo en la elipse), -1 = detrás (arriba)
     const profundidad = Math.sin(angulo);
@@ -107,6 +119,8 @@ function animar(ahora) {
   }
 
   colocarPlanetas();
+  // Compartimos el giro con fondo-estrellas.js para que el cielo se mueva con la órbita
+  window.rotacionOrbita = rotacion;
   requestAnimationFrame(animar);
 }
 

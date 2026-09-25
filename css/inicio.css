@@ -2,6 +2,18 @@
    PÁGINA DE INICIO — la órbita de mundos
    ========================================================= */
 
+/* ----- Fondo: cielo de estrellas ----- */
+/* "fixed" lo pega a la pantalla (no se mueve al hacer scroll) y
+   z-index: -1 lo pone detrás de todo el contenido de la página. */
+.fondo-estrellas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* los clics lo atraviesan */
+}
+
 .inicio {
   position: relative;
   display: flex;
@@ -11,14 +23,6 @@
 /* ----- Texto de presentación ----- */
 .intro {
   padding: 1rem var(--margen-lateral) 0;
-}
-
-.intro__etiqueta {
-  margin: 0 0 0.5rem;
-  color: var(--color-acento);
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
 }
 
 .intro__titulo {
@@ -44,10 +48,6 @@
     column-gap: 2rem;
   }
 
-  .intro__etiqueta {
-    grid-column: 1 / -1;
-  }
-
   .intro__pista {
     margin: 0;
   }
@@ -57,6 +57,8 @@
 .orbita {
   /* Tamaño de los planetas: mínimo 58px, ideal 8% del ancho, máximo 104px */
   --tam-planeta: clamp(58px, 8vw, 104px);
+  /* Diámetro del agujero negro: 1.7 veces un planeta. Todo lo del agujero crece con él */
+  --tam-agujero: calc(var(--tam-planeta) * 1.7);
 
   position: relative;
   isolation: isolate; /* los z-index de dentro no se mezclan con el resto */
@@ -66,67 +68,421 @@
   place-items: center;
   gap: 2.5rem;
   padding: 2rem var(--margen-lateral);
-  overflow: hidden;
-
-  /* Rejilla de puntos de fondo */
-  background-image: radial-gradient(var(--color-punto) 1px, transparent 1.5px);
-  background-size: 28px 28px;
+  /* Recorta solo a los lados (el disco es más ancho que la pantalla en móvil).
+     Por arriba no, para que la carta pueda asomar sobre el título */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
-/* ----- Logo central ----- */
+/* ----- Centro: agujero negro ----- */
 .orbita__logo {
   position: relative;
-  width: clamp(120px, 17vw, 210px);
-  color: var(--color-texto);
+  /* Rectángulo el doble de ancho que de alto: el disco se abre mucho a los lados.
+     En móvil es más ancho que la pantalla; lo que sobra se recorta (overflow de .orbita) */
+  /* El agujero ocupa el 12% del ancho del cuadro (ver radioAgujero en agujero-negro.js),
+     así que el cuadro mide su diámetro / 0.12 */
+  width: calc(var(--tam-agujero) / 0.12);
+  aspect-ratio: 2 / 1;
 }
 
-/* Resplandor suave detrás del logo */
-.orbita__logo::before {
+/* El lienzo ocupa todo el cuadro; el JS dibuja dentro el disco de píxeles */
+.agujero__lienzo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated; /* al ampliar, bordes duros: perfecto para píxeles */
+}
+
+/* Sin JavaScript no hay dibujo: ponemos un horizonte sencillo hecho con CSS */
+.agujero:not(.agujero--vivo) {
+  background: radial-gradient(circle closest-side, #000 24%, transparent 25%);
+}
+
+/* ----- La L-dragón de cromo líquido en 3D ----- */
+/* Truco del 3D: "perspective" crea la cámara; "preserve-3d" deja que las capas
+   de dentro tengan profundidad; "translateZ" empuja cada capa hacia atrás. */
+.letra3d {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7%; /* tamaño de la L (el cuadro es el doble de ancho que de alto) */
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  perspective: calc(var(--tam-agujero) * 4); /* la "cámara", a 4 agujeros de distancia */
+}
+
+.letra3d__cuerpo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* Inclinada igual que el disco y un poco echada hacia atrás. El JS mueve dos variables:
+     --balanceo: el giro de lado a lado (para que se note el grosor)
+     --despertar: 0 = dormida, 1 = despierta (al pasar el ratón): se endereza y crece */
+  transform:
+    rotateZ(var(--giro, -0.16rad))
+    rotateX(calc(16deg - var(--despertar, 0) * 10deg))
+    rotateY(var(--balanceo, -20deg))
+    scale(calc(1 + var(--despertar, 0) * 0.15));
+}
+
+.letra3d__capa,
+.letra3d__frente {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Capas de atrás: el "canto" de la letra. Cuanto más atrás (--capa mayor), más oscura */
+.letra3d__capa {
+  --paso: calc(var(--tam-agujero) * 0.013); /* separación entre capas: más = letra más gruesa */
+  fill: color-mix(in srgb, #5d6c8e, #0b0f1a calc(var(--capa) * 14%));
+  transform: translateZ(calc(var(--capa) * var(--paso) * -1));
+}
+
+/* Cara de delante: el cromo con un brillo de neón suave alrededor (más fuerte al despertar) */
+.letra3d__frente {
+  filter:
+    drop-shadow(0 0 2px rgba(220, 235, 255, 0.9))
+    drop-shadow(0 0 calc(8px + var(--despertar, 0) * 12px) rgba(130, 165, 255, 0.45));
+}
+
+/* Relleno de cromo + un filo de luz muy fino en todo el contorno */
+.letra3d__cromo {
+  fill: url(#cromo);
+  stroke: rgba(235, 242, 255, 0.7);
+  stroke-width: 0.6;
+}
+
+.letra3d__ojo {
+  fill: #eef7ff;
+  opacity: var(--despertar, 0);
+  filter: drop-shadow(0 0 1.5px #9fd0ff);
+}
+
+/* ----- Presentación que aparece sobre el agujero negro ----- */
+
+/* Zona invisible del tamaño del agujero: es la que detecta el ratón o el dedo */
+.agujero__zona {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14%; /* un poco más grande que el agujero, para que sea fácil acertar */
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto; /* el logo ignora el ratón (para poder arrastrar), la zona no */
+}
+
+/* ----- La carta de presentación (tarot) ----- */
+/* Colores propios de la carta: el mismo cromo que la L y el blanco de los píxeles del disco */
+.carta {
+  --carta-cara: #070a12;
+  --carta-cromo-claro: #e6edf9;
+  --carta-cromo: #8a9ab8;
+  --carta-cromo-oscuro: #2a3350;
+  --carta-pixel: #dff6fa;
+  --carta-texto: #d6deec;
+  --carta-curva: cubic-bezier(0.16, 1, 0.3, 1); /* arranca rápido y frena muy suave */
+
+  /* Dónde está la carta y de dónde sale. En escritorio: a la derecha del agujero,
+     girando desde su borde izquierdo (el que mira al agujero), como una puerta */
+  --carta-sitio: translate(0, -50%);        /* su posición final */
+  --carta-desde-x: -1.5rem;                 /* escondida: un poco hacia el agujero... */
+  --carta-desde-y: 0rem;
+  --carta-giro-x: 0deg;
+  --carta-giro-y: 35deg;                    /* ...y girada, con el lado derecho hacia el fondo */
+  transform-origin: 0% 50%;
+
+  position: absolute;
+  z-index: 95; /* por encima de los planetas (llegan hasta 90) */
+  left: calc(50% + var(--tam-agujero) * 0.75); /* el centro + el radio del agujero + un hueco */
+  top: 50%;
+  width: min(16rem, 86vw);
+  padding: 2.4rem 1.4rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  /* Truco del borde de cromo: el fondo de dentro (padding-box) es la cara oscura
+     y el de fuera (border-box) es el degradado, que solo asoma por el borde transparente */
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 30%, #121a2c, var(--carta-cara) 70%) padding-box,
+    linear-gradient(160deg, var(--carta-cromo-claro), #6c7996 28%, var(--carta-cromo-oscuro) 50%,
+      #a3b3d3 72%, var(--carta-cromo-claro)) border-box;
+  box-shadow:
+    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.85),
+    0 0 2.5rem rgba(130, 165, 255, 0.12);
+  pointer-events: none;
+
+  /* --- Escondida: transparente, borrosa, girada y metida hacia el agujero --- */
+  opacity: 0;
+  visibility: hidden;
+  filter: blur(6px);
+  transform: var(--carta-sitio) perspective(800px)
+    translate(var(--carta-desde-x), var(--carta-desde-y))
+    rotateX(var(--carta-giro-x)) rotateY(var(--carta-giro-y)) scale(0.95);
+  /* Al CERRARSE: rápido y sin florituras */
+  transition:
+    opacity 0.25s ease-in,
+    transform 0.3s ease-in,
+    filter 0.3s ease-in,
+    visibility 0s linear 0.3s;
+}
+
+/* En móvil no cabe al lado: aparece centrada sobre la órbita, levantándose desde abajo */
+@media (max-width: 700px) {
+  .carta {
+    --carta-sitio: translate(-50%, -50%);
+    --carta-desde-x: 0rem;
+    --carta-desde-y: 1.5rem;
+    --carta-giro-x: 24deg;
+    --carta-giro-y: 0deg;
+    left: 50%;
+    transform-origin: 50% 100%;
+  }
+}
+
+/* --- Visible: al pasar el ratón (solo con ratón), al llegar con Tab o al tocar en móvil.
+   ":has()" significa "que contiene": la órbita que contiene la zona con el ratón encima --- */
+@media (hover: hover) {
+  .orbita:has(.agujero__zona:hover) .carta {
+    opacity: 1;
+    visibility: visible;
+    filter: blur(0);
+    /* Mismas funciones que al estar escondida, pero en cero: así el navegador sabe animarlas */
+    transform: var(--carta-sitio) perspective(800px) translate(0, 0) rotateX(0) rotateY(0) scale(1);
+    /* Al ABRIRSE: lento y fluido */
+    transition:
+      opacity 0.5s ease-out,
+      transform 0.9s var(--carta-curva),
+      filter 0.6s ease-out,
+      visibility 0s;
+  }
+}
+
+.orbita:has(.agujero__zona:focus-visible, .agujero--abierto) .carta {
+  opacity: 1;
+  visibility: visible;
+  filter: blur(0);
+  transform: var(--carta-sitio) perspective(800px) translate(0, 0) rotateX(0) rotateY(0) scale(1);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.9s var(--carta-curva),
+    filter 0.6s ease-out,
+    visibility 0s;
+}
+
+/* Marco interior: una segunda línea más fina, con las esquinas cortadas (clip-path).
+   Los cortes los tapan los adornos de las esquinas. */
+.carta::before {
   content: "";
   position: absolute;
-  inset: -40%;
-  z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(242, 179, 91, 0.12), transparent 60%);
+  inset: 8px;
+  border: 1px solid rgba(163, 179, 211, 0.45);
+  border-radius: 2px;
+  clip-path: polygon(
+    12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
+    calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px
+  );
+  pointer-events: none;
 }
 
-.logo__texto {
-  fill: var(--color-texto-suave);
-  font-family: var(--fuente);
-  font-size: 11px;
-  letter-spacing: 1px;
-  transform-origin: 100px 100px; /* el centro del SVG */
-  animation: girar 40s linear infinite;
+/* Destello: una franja de luz que cruza la carta UNA vez cada vez que aparece */
+.carta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 42%, rgba(230, 240, 255, 0.16) 50%, transparent 58%)
+    no-repeat;
+  background-size: 250% 100%;
+  background-position: 120% 0; /* empieza fuera, a la derecha */
+  pointer-events: none;
 }
 
-.logo__disco {
-  fill: var(--color-superficie);
-  stroke: var(--color-linea);
-  stroke-width: 1.5;
-}
-
-.logo__letra {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 11;
-  stroke-linecap: square;
-}
-
-.logo__orbita {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  opacity: 0.4;
-}
-
-.logo__luna {
-  fill: var(--color-acento);
-}
-
-@keyframes girar {
-  to {
-    transform: rotate(360deg);
+@media (hover: hover) {
+  .orbita:has(.agujero__zona:hover) .carta::after {
+    animation: carta-destello 1.4s 0.35s ease-in-out both;
   }
+}
+
+.orbita:has(.agujero__zona:focus-visible, .agujero--abierto) .carta::after {
+  animation: carta-destello 1.4s 0.35s ease-in-out both;
+}
+
+@keyframes carta-destello {
+  to { background-position: -20% 0; } /* termina fuera, a la izquierda */
+}
+
+/* El <svg> que solo guarda el dibujo del adorno: no ocupa sitio */
+.carta__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Adornos de las esquinas: el mismo dibujo, girado 90° en cada esquina */
+.carta__esquina {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--carta-cromo);
+  stroke-width: 1;
+}
+
+.carta__diamante {
+  fill: var(--carta-cromo-claro);
+  stroke: none;
+}
+
+.carta__esquina--1 { top: 0; left: 0; }
+.carta__esquina--2 { top: 0; right: 0; transform: rotate(90deg); }
+.carta__esquina--3 { bottom: 0; right: 0; transform: rotate(180deg); }
+.carta__esquina--4 { bottom: 0; left: 0; transform: rotate(270deg); }
+
+/* ----- Contenido: aparece en cascada, un poco después que la carta ----- */
+.carta__numero,
+.carta__arte,
+.carta__texto,
+.carta__placa {
+  opacity: 0;
+  transform: translateY(0.4rem);
+  transition: opacity 0.2s ease-in, transform 0.2s ease-in; /* al cerrar: todo a la vez */
+}
+
+@media (hover: hover) {
+  .orbita:has(.agujero__zona:hover) .carta :is(.carta__numero, .carta__arte, .carta__texto, .carta__placa) {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.6s ease-out, transform 0.8s var(--carta-curva);
+    transition-delay: calc(0.15s + var(--orden, 0) * 0.09s);
+  }
+}
+
+.orbita:has(.agujero__zona:focus-visible, .agujero--abierto) .carta :is(.carta__numero, .carta__arte, .carta__texto, .carta__placa) {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.6s ease-out, transform 0.8s var(--carta-curva);
+  transition-delay: calc(0.15s + var(--orden, 0) * 0.09s);
+}
+
+/* El orden de la cascada (0 = primero) */
+.carta__numero { --orden: 0; }
+.carta__arte { --orden: 1; }
+.carta__texto { --orden: 2; }
+.carta__placa { --orden: 3; }
+
+/* Medallón con el número, montado sobre el marco de arriba */
+.carta__numero {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 2.3rem;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin: -1.15rem 0 0 -1.15rem; /* centrado sobre la línea del marco */
+  border: 1px solid var(--carta-cromo);
+  border-radius: 50%;
+  background: var(--carta-cara);
+  /* Segundo aro, por dentro */
+  box-shadow: inset 0 0 0 3px var(--carta-cara), inset 0 0 0 4px rgba(163, 179, 211, 0.35);
+  color: var(--carta-cromo-claro);
+  font-family: "Grenze", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* El arte: un disco de puntos (semitono) aplastado e inclinado como el de la página,
+   con el agujero negro en el centro */
+.carta__arte {
+  position: relative;
+  width: 100%;
+  height: 4.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.carta__arte::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Rejilla de puntos: un circulito repetido cada 5px */
+  background: radial-gradient(circle, var(--carta-pixel) 0 0.9px, transparent 1.3px) 0 0 / 5px 5px;
+  /* La máscara solo deja ver los puntos dentro de una elipse que se desvanece */
+  -webkit-mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 25%, transparent 75%);
+  mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 25%, transparent 75%);
+  transform: rotate(-0.16rad); /* la misma inclinación que el disco (data-giro) */
+}
+
+.carta__arte::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.5rem;
+  aspect-ratio: 1;
+  margin: -0.75rem 0 0 -0.75rem;
+  border-radius: 50%;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(223, 246, 250, 0.7), 0 0 0.75rem rgba(150, 235, 255, 0.35);
+}
+
+.carta__texto {
+  margin: 0 0 1.25rem;
+  color: var(--carta-texto);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  text-wrap: pretty; /* evita que la última línea se quede con una sola palabra */
+}
+
+/* Placa del nombre: una barra con puntas, como el título de una carta de tarot.
+   El borde de cromo es el fondo de la placa; la cara oscura (::before) queda 1px por dentro */
+.carta__placa {
+  --punta: 0.85rem;
+  position: relative;
+  width: 100%;
+  padding: 0.35rem 1.25rem 0.45rem;
+  background: linear-gradient(90deg, var(--carta-cromo-oscuro), var(--carta-cromo-claro) 50%, var(--carta-cromo-oscuro));
+  clip-path: polygon(var(--punta) 0, calc(100% - var(--punta)) 0, 100% 50%,
+    calc(100% - var(--punta)) 100%, var(--punta) 100%, 0 50%);
+  isolation: isolate; /* para que el ::before (z-index: -1) quede dentro de la placa */
+}
+
+.carta__placa::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--carta-cara);
+  clip-path: inherit;
+}
+
+.carta__nombre {
+  margin: 0;
+  color: var(--carta-cromo-claro);
+  font-family: "Grenze", Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.carta__oficio {
+  margin: 0.1rem 0 0;
+  color: var(--carta-cromo);
+  font-size: 0.68rem;
 }
 
 /* ----- Lista de mundos (versión sin JavaScript: cuadrícula) ----- */
@@ -341,7 +697,7 @@
   height: calc(var(--radio-y, 0px) * 2);
   border: 1px solid var(--color-linea);
   border-radius: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(var(--giro, 0rad)); /* torcida como el disco */
   pointer-events: none;
 }
 
