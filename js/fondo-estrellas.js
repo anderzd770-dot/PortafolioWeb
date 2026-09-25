@@ -51,7 +51,8 @@ const VELOCIDAD_PARPADEO = 1.2; // más alto = parpadean más rápido
 const VELOCIDAD_GIRO = 0.5;     // giro máximo de cada estrella sobre sí misma (radianes por segundo)
 const PASO_GIRO = Math.PI / 4;  // giran a saltos de 45° (cambian de + a ×)
 // Colores de las estrellas. Repetir un color hace que salga más a menudo.
-const COLORES = ["#dff6fa", "#dff6fa", "#dff6fa", "#a9c4ff", "#a6f25b", "#ff5a4a"];
+// Paleta inspirada en Evangelion: morado, verde neón y rojo sobre el blanco frío.
+const COLORES = ["#dff6fa", "#dff6fa", "#dff6fa", "#a56bff", "#a6f25b", "#ff5a4a"];
 const RADIO_ATRACCION = 3.5;    // si una estrella se acerca a menos de esto (en radios del agujero), cae
 const TIEMPO_NACER = 3;         // segundos que tarda en aparecer la estrella nueva que la reemplaza
 const FPS = 30;

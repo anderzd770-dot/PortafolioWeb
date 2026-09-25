@@ -68,10 +68,7 @@
   place-items: center;
   gap: 2.5rem;
   padding: 2rem var(--margen-lateral);
-  /* Recorta solo a los lados (el disco es más ancho que la pantalla en móvil).
-     Por arriba no, para que la carta pueda asomar sobre el título */
-  overflow-x: clip;
-  overflow-y: visible;
+  overflow: hidden; /* el disco es más ancho que la pantalla en móvil: lo que sobra se recorta */
 }
 
 /* ----- Centro: agujero negro ----- */
@@ -182,6 +179,45 @@
 }
 
 /* ----- La carta de presentación (tarot) ----- */
+
+/* El portal: la caja arriba a la izquierda donde se forma la carta.
+   Escondido hasta que el JS (js/carta.js) le pone .portal--visible */
+.portal {
+  --portal-margen: 3rem; /* espacio extra del lienzo alrededor de la carta, para la espiral */
+
+  position: absolute;
+  z-index: 10; /* por encima de la órbita */
+  top: 0.75rem;
+  left: var(--margen-lateral);
+  width: min(16rem, calc(100% - 2 * var(--margen-lateral)));
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.portal--visible {
+  visibility: visible;
+}
+
+/* Mientras la carta está fuera, el título se aparta para dejarle sitio */
+.intro {
+  transition: opacity 0.4s ease;
+}
+
+.inicio:has(.portal--visible) .intro {
+  opacity: 0;
+}
+
+/* El lienzo de las partículas: un poco más grande que la carta por todos lados,
+   para que la espiral pueda salirse de ella mientras se forma */
+.portal__lienzo {
+  position: absolute;
+  z-index: 2; /* encima de la carta: los píxeles "aterrizan" sobre ella */
+  top: calc(var(--portal-margen) * -1);
+  left: calc(var(--portal-margen) * -1);
+  width: calc(100% + var(--portal-margen) * 2);
+  height: calc(100% + var(--portal-margen) * 2);
+}
+
 /* Colores propios de la carta: el mismo cromo que la L y el blanco de los píxeles del disco */
 .carta {
   --carta-cara: #070a12;
@@ -192,20 +228,7 @@
   --carta-texto: #d6deec;
   --carta-curva: cubic-bezier(0.16, 1, 0.3, 1); /* arranca rápido y frena muy suave */
 
-  /* Dónde está la carta y de dónde sale. En escritorio: a la derecha del agujero,
-     girando desde su borde izquierdo (el que mira al agujero), como una puerta */
-  --carta-sitio: translate(0, -50%);        /* su posición final */
-  --carta-desde-x: -1.5rem;                 /* escondida: un poco hacia el agujero... */
-  --carta-desde-y: 0rem;
-  --carta-giro-x: 0deg;
-  --carta-giro-y: 35deg;                    /* ...y girada, con el lado derecho hacia el fondo */
-  transform-origin: 0% 50%;
-
-  position: absolute;
-  z-index: 95; /* por encima de los planetas (llegan hasta 90) */
-  left: calc(50% + var(--tam-agujero) * 0.75); /* el centro + el radio del agujero + un hueco */
-  top: 50%;
-  width: min(16rem, 86vw);
+  position: relative;
   padding: 2.4rem 1.4rem 1.3rem;
   display: flex;
   flex-direction: column;
@@ -223,64 +246,7 @@
   box-shadow:
     0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.85),
     0 0 2.5rem rgba(130, 165, 255, 0.12);
-  pointer-events: none;
-
-  /* --- Escondida: transparente, borrosa, girada y metida hacia el agujero --- */
-  opacity: 0;
-  visibility: hidden;
-  filter: blur(6px);
-  transform: var(--carta-sitio) perspective(800px)
-    translate(var(--carta-desde-x), var(--carta-desde-y))
-    rotateX(var(--carta-giro-x)) rotateY(var(--carta-giro-y)) scale(0.95);
-  /* Al CERRARSE: rápido y sin florituras */
-  transition:
-    opacity 0.25s ease-in,
-    transform 0.3s ease-in,
-    filter 0.3s ease-in,
-    visibility 0s linear 0.3s;
-}
-
-/* En móvil no cabe al lado: aparece centrada sobre la órbita, levantándose desde abajo */
-@media (max-width: 700px) {
-  .carta {
-    --carta-sitio: translate(-50%, -50%);
-    --carta-desde-x: 0rem;
-    --carta-desde-y: 1.5rem;
-    --carta-giro-x: 24deg;
-    --carta-giro-y: 0deg;
-    left: 50%;
-    transform-origin: 50% 100%;
-  }
-}
-
-/* --- Visible: al pasar el ratón (solo con ratón), al llegar con Tab o al tocar en móvil.
-   ":has()" significa "que contiene": la órbita que contiene la zona con el ratón encima --- */
-@media (hover: hover) {
-  .orbita:has(.agujero__zona:hover) .carta {
-    opacity: 1;
-    visibility: visible;
-    filter: blur(0);
-    /* Mismas funciones que al estar escondida, pero en cero: así el navegador sabe animarlas */
-    transform: var(--carta-sitio) perspective(800px) translate(0, 0) rotateX(0) rotateY(0) scale(1);
-    /* Al ABRIRSE: lento y fluido */
-    transition:
-      opacity 0.5s ease-out,
-      transform 0.9s var(--carta-curva),
-      filter 0.6s ease-out,
-      visibility 0s;
-  }
-}
-
-.orbita:has(.agujero__zona:focus-visible, .agujero--abierto) .carta {
-  opacity: 1;
-  visibility: visible;
-  filter: blur(0);
-  transform: var(--carta-sitio) perspective(800px) translate(0, 0) rotateX(0) rotateY(0) scale(1);
-  transition:
-    opacity 0.5s ease-out,
-    transform 0.9s var(--carta-curva),
-    filter 0.6s ease-out,
-    visibility 0s;
+  /* Mientras se forma, el JS le va subiendo la opacidad (aparece a la vez que aterrizan los píxeles) */
 }
 
 /* Marco interior: una segunda línea más fina, con las esquinas cortadas (clip-path).
@@ -298,7 +264,7 @@
   pointer-events: none;
 }
 
-/* Destello: una franja de luz que cruza la carta UNA vez cada vez que aparece */
+/* Destello: una franja de luz que cruza la carta UNA vez, cuando ya está formada */
 .carta::after {
   content: "";
   position: absolute;
@@ -311,14 +277,8 @@
   pointer-events: none;
 }
 
-@media (hover: hover) {
-  .orbita:has(.agujero__zona:hover) .carta::after {
-    animation: carta-destello 1.4s 0.35s ease-in-out both;
-  }
-}
-
-.orbita:has(.agujero__zona:focus-visible, .agujero--abierto) .carta::after {
-  animation: carta-destello 1.4s 0.35s ease-in-out both;
+.portal--abierto .carta::after {
+  animation: carta-destello 1.4s 1s ease-in-out both;
 }
 
 @keyframes carta-destello {
@@ -352,30 +312,21 @@
 .carta__esquina--3 { bottom: 0; right: 0; transform: rotate(180deg); }
 .carta__esquina--4 { bottom: 0; left: 0; transform: rotate(270deg); }
 
-/* ----- Contenido: aparece en cascada, un poco después que la carta ----- */
+/* ----- Contenido: aparece en cascada cuando la carta ya casi está formada ----- */
 .carta__numero,
 .carta__arte,
 .carta__texto,
 .carta__placa {
   opacity: 0;
   transform: translateY(0.4rem);
-  transition: opacity 0.2s ease-in, transform 0.2s ease-in; /* al cerrar: todo a la vez */
+  transition: opacity 0.15s ease-in, transform 0.15s ease-in; /* al cerrar: todo a la vez, rápido */
 }
 
-@media (hover: hover) {
-  .orbita:has(.agujero__zona:hover) .carta :is(.carta__numero, .carta__arte, .carta__texto, .carta__placa) {
-    opacity: 1;
-    transform: none;
-    transition: opacity 0.6s ease-out, transform 0.8s var(--carta-curva);
-    transition-delay: calc(0.15s + var(--orden, 0) * 0.09s);
-  }
-}
-
-.orbita:has(.agujero__zona:focus-visible, .agujero--abierto) .carta :is(.carta__numero, .carta__arte, .carta__texto, .carta__placa) {
+.portal--abierto .carta :is(.carta__numero, .carta__arte, .carta__texto, .carta__placa) {
   opacity: 1;
   transform: none;
   transition: opacity 0.6s ease-out, transform 0.8s var(--carta-curva);
-  transition-delay: calc(0.15s + var(--orden, 0) * 0.09s);
+  transition-delay: calc(0.6s + var(--orden, 0) * 0.09s);
 }
 
 /* El orden de la cascada (0 = primero) */
@@ -411,8 +362,8 @@
 .carta__arte {
   position: relative;
   width: 100%;
-  height: 4.5rem;
-  margin-bottom: 0.9rem;
+  height: 3.25rem;
+  margin-bottom: 0.6rem;
 }
 
 .carta__arte::before {
