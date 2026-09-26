@@ -20,37 +20,151 @@
   flex-direction: column;
 }
 
-/* ----- Texto de presentación ----- */
+/* ----- Título y pista, centrados arriba ----- */
 .intro {
-  padding: 1rem var(--margen-lateral) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centra en horizontal */
+  text-align: center;
+  padding: 0.25rem var(--margen-lateral) 0;
+
+  /* El título queda por encima de la cabecera y de la órbita (se solapan un poco, ver abajo).
+     Pero la caja de .intro ocupa todo el ancho: para que no tape el menú ni el arrastre
+     de la órbita, la caja deja pasar el ratón y solo el título y la pista lo reciben */
+  position: relative;
+  z-index: 101; /* la cabecera tiene 100 */
+  pointer-events: none;
 }
 
-.intro__titulo {
+.intro > * {
+  pointer-events: auto;
+}
+
+/* En pantallas anchas el título sube hasta la fila de la cabecera, entre el logo y el menú
+   (en móvil no: ahí chocaría con el menú) */
+@media (min-width: 900px) {
+  .intro {
+    margin-top: -3.5rem;
+  }
+}
+
+/* ----- Título de cromo: tu imagen img/titulo-anderswelt.webp, partida en letras (js/titulo.js) ----- */
+.titulo {
+  position: relative; /* para colocar encima el lienzo de las chispas */
   margin: 0;
-  font-size: clamp(1.3rem, 2.6vw, 2rem);
-  font-weight: 500;
-  line-height: 1.15;
+  font-size: clamp(2.75rem, 7.5vw, 6rem); /* mínimo, ideal (7.5% del ancho), máximo */
+  line-height: 1;
+
+  /* Un halo muy suave alrededor: los brillos y filos ya vienen en la imagen.
+     Va en el h1 para que envuelva todo a la vez: letras y estrella. */
+  filter: drop-shadow(0 0 8px rgba(190, 196, 210, 0.18));
+}
+
+/* Texto normal: solo se ve si el JavaScript no ha dibujado las letras */
+.titulo__texto {
+  font-family: "Grenze", Georgia, serif;
+  font-weight: 600;
+  color: #e4e6ea;
+}
+
+/* El dibujo está escondido hasta que js/titulo.js lo rellena */
+.titulo__dibujo {
+  display: none;
+  height: 1.6em;   /* alto total de la imagen, con las puntas de arriba y de abajo */
+  width: auto;
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* Ya dibujado: enseñamos el SVG y escondemos el texto solo a la vista
+   (los lectores de pantalla lo siguen leyendo) */
+.titulo--dibujado .titulo__dibujo {
+  display: block;
+  /* En móvil: deslizar el dedo en horizontal mueve la estrella de luz;
+     en vertical sigue haciendo scroll (como en la órbita) */
+  touch-action: pan-y;
+}
+
+.titulo--dibujado .titulo__texto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Ondas de luz encima del metal, como en el dragón: anillos de blanco medio transparente
+   (#titulo-cromo, los mueve js/titulo.js), recortados con la propia imagen */
+.titulo__ondas {
+  fill: url(#titulo-cromo);
+  pointer-events: none;
+}
+
+/* Capa blanca con la forma del metal: se enciende cuando una estrella choca con la letra */
+.titulo__brillo {
+  fill: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Lienzo de las explosiones: más grande que el título para que las chispas quepan */
+.titulo__chispas {
+  position: absolute;
+  left: -40px;
+  top: -40px;
+  width: calc(100% + 80px);
+  height: calc(100% + 80px);
+  pointer-events: none;
+}
+
+/* Al cargar, cada letra "brota" una tras otra (--n es su número, lo pone el JS).
+   Crece desde su propio centro: el JS se lo pone en transform-origin */
+.titulo__letra {
+  animation: letra-brota 0.9s cubic-bezier(0.2, 1.3, 0.4, 1) calc(var(--n) * 70ms) both;
+}
+
+@keyframes letra-brota {
+  from { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Estrella de cristal en la A: se enciende cuando ya salieron las letras.
+   El centro de la estrella no es el centro de su caja (los brazos miden distinto):
+   está al 54% del ancho y al 56% del alto, y desde ahí gira y crece. */
+.titulo__destello {
+  transform-box: fill-box;
+  transform-origin: 54% 56%;
+  /* Brillo de neón suave alrededor, como en la referencia */
+  filter:
+    drop-shadow(0 0 1px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 5px rgba(225, 232, 245, 0.6));
+  animation: destello 1.4s ease-out 0.9s both;
+}
+
+.estrella__luz    { fill: url(#estrella-luz); }
+.estrella__sombra { fill: url(#estrella-sombra); }
+
+/* Filo: una línea blanca muy fina por todo el borde */
+.estrella__filo {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 0.35;
+}
+
+.estrella__nucleo { fill: url(#estrella-nucleo); }
+
+@keyframes destello {
+  0%   { opacity: 0; transform: scale(0) rotate(-60deg); }
+  55%  { opacity: 1; transform: scale(1.35) rotate(0deg); }
+  100% { opacity: 0.9; transform: scale(1) rotate(0deg); }
 }
 
 .intro__pista {
-  margin: 0.75rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--color-texto-suave);
   font-size: 0.75rem;
   letter-spacing: 0.08em;
-}
-
-/* En pantallas grandes: título a la izquierda y la pista a la derecha, en una fila */
-@media (min-width: 900px) {
-  .intro {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: end;
-    column-gap: 2rem;
-  }
-
-  .intro__pista {
-    margin: 0;
-  }
 }
 
 /* ----- Escenario de la órbita ----- */
@@ -63,7 +177,10 @@
   position: relative;
   isolation: isolate; /* los z-index de dentro no se mezclan con el resto */
   flex: 1;
-  min-height: 520px;
+  min-height: 520px; /* no bajarlo: con menos alto, orbita.js aplasta la órbita de los planetas */
+  /* Sube por debajo de la pista: la parte de arriba de este cuadro está vacía
+     (el agujero va en el centro), así el agujero queda más arriba en la pantalla */
+  margin-top: -2.5rem;
   display: grid;
   place-items: center;
   gap: 2.5rem;
@@ -96,16 +213,52 @@
   background: radial-gradient(circle closest-side, #000 24%, transparent 25%);
 }
 
-/* ----- La L-dragón de cromo líquido en 3D ----- */
+/* ----- La Z-dragón de cromo líquido en 3D ----- */
 /* Truco del 3D: "perspective" crea la cámara; "preserve-3d" deja que las capas
    de dentro tengan profundidad; "translateZ" empuja cada capa hacia atrás. */
+/* Rendimiento: el JS cambia estas variables en CADA fotograma. Una variable normal se hereda,
+   y al cambiarla el navegador recalcula los estilos de todos los hijos (los ~160 SVG de la Z:
+   unos 4 ms por fotograma). Con "inherits: false" solo se recalcula el elemento que la usa
+   (el JS las pone justo ahí: en la Z, en su cuerpo o en los ojos). */
+@property --vuelta      { syntax: "<angle>";  inherits: false; initial-value: 0deg; }
+@property --latitud     { syntax: "<angle>";  inherits: false; initial-value: 16deg; }
+@property --rodar       { syntax: "<angle>";  inherits: false; initial-value: 0rad; }
+@property --rodar-eje-x { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --rodar-eje-y { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --iman-estira { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --iman-angulo { syntax: "<angle>";  inherits: false; initial-value: 0deg; }
+@property --despertar   { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+/* SVG que solo guarda la forma y el degradado: no ocupa sitio */
+.letra3d__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 .letra3d {
+  /* Curvatura de la Z: cuántos radianes de un cilindro ocupa de lado a lado.
+     0.05 = casi plana, 1.5 = muy doblada (0 no: se divide entre ella) */
+  --curva: 0.8;
+  container-type: size; /* así los trozos pueden medir la Z con "cqw" y "cqh" (1% de su ancho/alto) */
+  /* Brillo de neón suave alrededor de la Z (más fuerte al despertar). Va aquí, en la Z entera,
+     y no en cada trozo: si no, cada trozo cortaría su brillo y se vería una cuadrícula de luz */
+  filter:
+    drop-shadow(0 0 2px rgba(235, 237, 242, 0.9))
+    drop-shadow(0 0 calc(8px + var(--despertar, 0) * 12px) rgba(190, 196, 210, 0.4));
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 7%; /* tamaño de la L (el cuadro es el doble de ancho que de alto) */
+  width: 7%; /* tamaño de la Z (el cuadro es el doble de ancho que de alto) */
   aspect-ratio: 1;
-  transform: translate(-50%, -50%);
+  /* El imán (lo mueve el JS): la Z se estira en la dirección en la que se mueve.
+     Para estirar en diagonal: girar, estirar y deshacer el giro */
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--iman-angulo, 0deg))
+    scale(calc(1 + var(--iman-estira, 0)), calc(1 - var(--iman-estira, 0) * 0.5))
+    rotate(calc(var(--iman-angulo, 0deg) * -1));
   perspective: calc(var(--tam-agujero) * 4); /* la "cámara", a 4 agujeros de distancia */
 }
 
@@ -114,18 +267,56 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  /* Inclinada igual que el disco y un poco echada hacia atrás. El JS mueve dos variables:
-     --balanceo: el giro de lado a lado (para que se note el grosor)
-     --despertar: 0 = dormida, 1 = despierta (al pasar el ratón): se endereza y crece */
+  /* El cuerpo es la esfera entera: su centro es el centro del agujero (el centro de gravedad)
+     y los trozos de la Z están pegados a su superficie. Girar el cuerpo = girar el planeta.
+     Leyendo de derecha a izquierda:
+     1) rotateX(--latitud): el continente está algo al norte del ecuador
+     2) rotateY(--vuelta): el planeta gira sobre su eje
+     3) rotateX(--eje-esfera) y rotateZ(--giro): el eje se inclina como el disco,
+        así la Z recorre el mismo tipo de camino que los píxeles y los planetas
+     4) rotate3d(--rodar): el imán. La esfera entera rueda hacia el ratón, alrededor de un eje
+        perpendicular a él, y el dragón se desliza hasta tocar el borde (la ecuación está en el JS)
+     Todas las variables las pone el JS (js/agujero-negro.js). Ahora el dragón está quieto:
+     la vuelta y el imán están apagados (DA_VUELTAS y SIGUE_AL_RATON en el JS). */
   transform:
+    rotate3d(var(--rodar-eje-x, 0), var(--rodar-eje-y, 1), 0, var(--rodar, 0rad))
     rotateZ(var(--giro, -0.16rad))
-    rotateX(calc(16deg - var(--despertar, 0) * 10deg))
-    rotateY(var(--balanceo, -20deg))
-    scale(calc(1 + var(--despertar, 0) * 0.15));
+    rotateX(var(--eje-esfera, -16deg))
+    rotateY(var(--vuelta, 0deg))
+    rotateX(var(--latitud, 16deg));
 }
 
-.letra3d__capa,
+/* ----- La Z pegada a la esfera: trozos como las piezas de un globo -----
+   Cada trozo (los crea el JS) es un cuadradito de la Z. --x y --y dicen dónde está su centro
+   respecto al centro de la Z (en anchos de Z); --sx, --sy y --distancia, dónde está respecto
+   al PECHO del dragón, que es el punto de la esfera que nos mira de frente.
+   Leyendo de derecha a izquierda:
+   1) translateZ: lo levantamos desde el centro de la esfera hasta su superficie
+   2) rotate3d: lo giramos sobre el centro de la esfera, alejándolo del frente (del pecho) tantos
+      radianes como su distancia × --curva. Así la distancia sobre la esfera es la misma
+      que en la Z plana, y el trozo queda tocando la esfera (tangente), como un azulejo
+   3) translate: primero llevamos el trozo al centro de la Z, que es el centro de la esfera */
+.letra3d__trozo {
+  position: absolute;
+  transform-style: preserve-3d;
+  transform:
+    translate(calc(var(--x) * -100cqw), calc(var(--y) * -100cqh))
+    rotate3d(calc(var(--sy) * -1), var(--sx), 0, calc(var(--distancia) * var(--curva) * 1rad))
+    translateZ(var(--radio-esfera, 0px));
+}
+
+/* Cada copia solo enseña su cuadradito (su viewBox), sin salirse.
+   --luz la pone el JS: 1 = de frente, 0 = llegando a la parte de atrás de la esfera.
+   Va en cada copia y no en el trozo: la opacidad en el trozo aplastaría su grosor 3D */
+.letra3d__trozo > svg {
+  overflow: hidden;
+  opacity: var(--luz, 1);
+}
+
 .letra3d__frente {
+  /* Cuando la Z pasa por detrás de la esfera nos da la espalda: así no se dibuja
+     y parece que la esfera negra la tapa */
+  backface-visibility: hidden;
   position: absolute;
   inset: 0;
   width: 100%;
@@ -133,31 +324,17 @@
   overflow: visible;
 }
 
-/* Capas de atrás: el "canto" de la letra. Cuanto más atrás (--capa mayor), más oscura */
-.letra3d__capa {
-  --paso: calc(var(--tam-agujero) * 0.013); /* separación entre capas: más = letra más gruesa */
-  fill: color-mix(in srgb, #5d6c8e, #0b0f1a calc(var(--capa) * 14%));
-  transform: translateZ(calc(var(--capa) * var(--paso) * -1));
+/* Ondas de luz encima del dibujo: anillos de blanco medio transparente (#cromo-z, los mueve el JS),
+   recortados con el propio dibujo (mask="url(#mascara-z)" en el HTML) */
+.letra3d__ondas {
+  fill: url(#cromo-z);
 }
 
-/* Cara de delante: el cromo con un brillo de neón suave alrededor (más fuerte al despertar) */
-.letra3d__frente {
-  filter:
-    drop-shadow(0 0 2px rgba(220, 235, 255, 0.9))
-    drop-shadow(0 0 calc(8px + var(--despertar, 0) * 12px) rgba(130, 165, 255, 0.45));
-}
-
-/* Relleno de cromo + un filo de luz muy fino en todo el contorno */
-.letra3d__cromo {
-  fill: url(#cromo);
-  stroke: rgba(235, 242, 255, 0.7);
-  stroke-width: 0.6;
-}
-
+/* El ojo rojo de tu dibujo se enciende al despertar (pasar el ratón): un brillo rojo encima */
 .letra3d__ojo {
-  fill: #eef7ff;
+  fill: #ff4a3d;
   opacity: var(--despertar, 0);
-  filter: drop-shadow(0 0 1.5px #9fd0ff);
+  filter: drop-shadow(0 0 1.5px #ff2a1f);
 }
 
 /* ----- Presentación que aparece sobre el agujero negro ----- */
@@ -198,15 +375,6 @@
   visibility: visible;
 }
 
-/* Mientras la carta está fuera, el título se aparta para dejarle sitio */
-.intro {
-  transition: opacity 0.4s ease;
-}
-
-.inicio:has(.portal--visible) .intro {
-  opacity: 0;
-}
-
 /* El lienzo de las partículas: un poco más grande que la carta por todos lados,
    para que la espiral pueda salirse de ella mientras se forma */
 .portal__lienzo {
@@ -218,7 +386,7 @@
   height: calc(100% + var(--portal-margen) * 2);
 }
 
-/* Colores propios de la carta: el mismo cromo que la L y el blanco de los píxeles del disco */
+/* Colores propios de la carta: el cromo azulado del título y el blanco de los píxeles del disco */
 .carta {
   --carta-cara: #070a12;
   --carta-cromo-claro: #e6edf9;
@@ -567,11 +735,7 @@
   transform: rotate(-18deg);
 }
 
-/* Hollow Knight: luna pálida y fría, con reflejos azulados */
-.planeta--hollow-knight {
-  --superficie: radial-gradient(circle at 35% 30%, #f3f6fb, #9aaac4 40%, #3a4660 70%, #141a28);
-  --brillo: rgba(160, 185, 230, 0.35);
-}
+/* Hollow Knight: tiene su propio dibujo en SVG → css/planetas/hollow-knight.css */
 
 /* Elden Ring: oro intenso con un halo dorado */
 .planeta--elden-ring {
@@ -698,3 +862,4 @@
     font-size: 0.62rem;
   }
 }
+

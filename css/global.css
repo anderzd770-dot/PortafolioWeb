@@ -59,12 +59,23 @@ svg {
   padding: 1.25rem var(--margen-lateral);
 }
 
+/* Emblema de la cabecera (img/dragon-z.png): al pasar el ratón gira un poco y brilla más */
 .cabecera__marca {
-  color: inherit;
-  font-weight: 700;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  text-decoration: none;
+  display: block;
+  border-radius: 50%;
+}
+
+.cabecera__logo {
+  width: 58px;
+  height: auto;
+  filter: drop-shadow(0 0 6px rgba(130, 165, 255, 0.35));
+  transition: transform 0.4s cubic-bezier(0.2, 1.4, 0.4, 1), filter 0.4s;
+}
+
+.cabecera__marca:hover .cabecera__logo,
+.cabecera__marca:focus-visible .cabecera__logo {
+  transform: rotate(-12deg) scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(170, 200, 255, 0.7));
 }
 
 .menu {
