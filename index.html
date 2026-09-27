@@ -445,35 +445,9 @@
       <canvas class="portal__lienzo" aria-hidden="true"></canvas>
 
       <div class="carta" id="presentacion">
-
-        <!-- Adorno de esquina: se dibuja una vez y se reutiliza (girado) en las cuatro -->
-        <svg class="carta__defs" aria-hidden="true">
-          <symbol id="adorno-esquina" viewBox="0 0 28 28">
-            <path d="M8 20 L20 8" />                       <!-- corte de la esquina del marco -->
-            <path d="M3 15 L15 3" opacity="0.45" />          <!-- una línea paralela más tenue -->
-            <path d="M8 3.5 L12.5 8 L8 12.5 L3.5 8 Z" class="carta__diamante" />
-          </symbol>
-        </svg>
-        <svg class="carta__esquina carta__esquina--1" aria-hidden="true"><use href="#adorno-esquina" /></svg>
-        <svg class="carta__esquina carta__esquina--2" aria-hidden="true"><use href="#adorno-esquina" /></svg>
-        <svg class="carta__esquina carta__esquina--3" aria-hidden="true"><use href="#adorno-esquina" /></svg>
-        <svg class="carta__esquina carta__esquina--4" aria-hidden="true"><use href="#adorno-esquina" /></svg>
-
-        <span class="carta__numero" aria-hidden="true">0</span>
-
-        <!-- El "arte" de la carta: el agujero negro en semitono (todo con CSS) -->
-        <div class="carta__arte" aria-hidden="true"></div>
-
-        <p class="carta__texto">
-          Soy Ludwig. Estoy aprendiendo a crear videojuegos y quiero estudiarlo en Alemania.
-          Cada planeta es un mundo que me marcó: entra y descubre por qué.
-        </p>
-
-        <!-- La placa del nombre, como el título de una carta -->
-        <div class="carta__placa">
-          <p class="carta__nombre">Ludwig</p>
-          <p class="carta__oficio">Diseño de videojuegos</p>
-        </div>
+        <!-- La carta oficial de Ludwig (img/CardsOfficial/Ludwig.webp) -->
+        <img class="carta__imagen" src="img/CardsOfficial/Ludwig.webp"
+             alt="Carta de Ludwig: un caballero con armadura futurista bajo un cielo de estrellas.">
       </div>
     </div>
   </main>
