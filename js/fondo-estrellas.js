@@ -20,6 +20,10 @@
 // zona de atracción, le pasamos sus píxeles a agujero-negro.js, que
 // los hace caer al disco. En su lugar nace otra en un sitio al azar.
 //
+// Idea clave 4 (chocan con el título): si una estrella entra en una
+// letra de "Anderswelt", le pedimos a titulo.js que la haga estallar
+// en píxeles, y nace otra en su lugar (igual que con el agujero).
+//
 // Para gastar pocos recursos:
 //  - La cantidad de estrellas depende del tamaño de la pantalla.
 //  - Todos los píxeles del mismo color se pintan de una sola vez.
@@ -240,6 +244,28 @@ function caerEnElAgujero(e, pixeles, tiempo) {
   e.y = Math.random() * alto;
   e.nacio = tiempo;
   e.dentro = undefined; // si nace dentro de la zona, no cae hasta que salga y vuelva a entrar
+  e.enLetra = undefined; // lo mismo con las letras del título
+}
+
+// ¿La estrella ACABA de entrar en una letra del título? Igual que con el agujero:
+// solo cuenta el momento de cruzar el borde (las que ya estaban dentro no estallan).
+function acabaDeChocar(e, rotacion, titulo) {
+  const dentro = titulo.hayLetra(posicionX(e, rotacion), e.y);
+  const antes = e.enLetra;
+  e.enLetra = dentro;
+  return dentro && antes === false;
+}
+
+// La estrella choca con el título: estalla (lo dibuja titulo.js) y nace otra en otro sitio
+function chocarConElTitulo(e, rotacion, titulo, tiempo) {
+  // Fuerza según el tamaño: 1 píxel = chispazo, rombo grande o cruz = explosión entera
+  const fuerza = Math.min(1, Math.max(0.15, e.forma.length / 13));
+  titulo.explotar(posicionX(e, rotacion), e.y, e.color, fuerza);
+  e.x = Math.random() * ancho;
+  e.y = Math.random() * alto;
+  e.nacio = tiempo;
+  e.dentro = undefined;
+  e.enLetra = undefined;
 }
 
 // ----- Dibujar un fotograma -----
@@ -248,6 +274,8 @@ function dibujar(tiempo) {
   const rotacion = window.rotacionOrbita || 0;
   // agujero-negro.js comparte dónde está el agujero (en otras páginas no hay agujero)
   const agujero = window.agujeroNegro ? window.agujeroNegro.posicion() : null;
+  // titulo.js comparte sus letras para los choques (solo existe en el inicio)
+  const titulo = window.tituloAnderswelt || null;
 
   // Un trazado por color: juntamos ahí todos sus píxeles y los pintamos de golpe
   const trazados = new Map();
@@ -257,6 +285,11 @@ function dibujar(tiempo) {
     if (agujero && acabaDeEntrar(e, rotacion, agujero)) {
       caerEnElAgujero(e, pixeles, tiempo);
       continue; // esta ya no se dibuja aquí: ahora la dibuja el agujero
+    }
+
+    if (titulo && acabaDeChocar(e, rotacion, titulo)) {
+      chocarConElTitulo(e, rotacion, titulo, tiempo);
+      continue; // ha estallado: este fotograma ya no se dibuja
     }
 
     if (!trazados.has(e.color)) trazados.set(e.color, new Path2D());

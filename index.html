@@ -6,7 +6,11 @@
   <title>Ludwig — Portafolio de mundos</title>
   <meta name="description" content="Portafolio de Ludwig: los mundos de videojuegos que me inspiran a crear juegos.">
 
-  <!-- Tipografía (Google Fonts): Space Grotesk para todo el sitio y Grenze para la carta -->
+  <!-- Icono de la pestaña: tu dibujo del dragón sobre un círculo oscuro -->
+  <link rel="icon" href="img/favicon.png" type="image/png">
+
+  <!-- Tipografía (Google Fonts): Space Grotesk para todo el sitio y Grenze para la carta
+       (y para el título si el JavaScript no carga) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Grenze:wght@500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,6 +18,8 @@
   <!-- Estilos compartidos por todo el sitio + estilos propios del inicio -->
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/inicio.css">
+  <!-- Planetas con dibujo propio: un archivo por planeta -->
+  <link rel="stylesheet" href="css/planetas/hollow-knight.css">
 </head>
 <body>
 
@@ -22,7 +28,10 @@
 
   <!-- ===== Cabecera (igual en todas las páginas) ===== -->
   <header class="cabecera">
-    <a href="./" class="cabecera__marca">Ludwig</a>
+    <!-- Emblema: tu dibujo de la Z-dragón (img/dragon-z.png), el mismo del agujero -->
+    <a href="./" class="cabecera__marca" aria-label="Ludwig, inicio">
+      <img class="cabecera__logo" src="img/dragon-z.png" alt="" width="58" height="58">
+    </a>
     <nav aria-label="Menú principal">
       <ul class="menu">
         <li><a href="./" aria-current="page">Inicio</a></li>
@@ -33,9 +42,56 @@
 
   <main class="inicio">
 
-    <!-- Texto de presentación (cámbialo por el tuyo) -->
+    <!-- Título del sitio: "Anderswelt" = "el otro mundo" en alemán (y empieza por Anders-on) -->
     <div class="intro">
-      <h1 class="intro__titulo">Los mundos que me hicieron querer crear juegos</h1>
+
+      <!-- El título es la imagen img/titulo-anderswelt.webp (tu diseño, con el negro vuelto transparente;
+           el original está en stylesrefence/letters/titulo-anderswelt.jpg).
+           js/titulo.js la parte en 10 letras para que cada una reaccione por separado.
+           Las estrellas del fondo que chocan con las letras estallan en píxeles.
+           El texto normal se queda dentro para lectores de pantalla y buscadores,
+           y se ve en su lugar si el JavaScript o la imagen no cargan. -->
+      <h1 class="titulo" lang="de">
+        <span class="titulo__texto">Anderswelt</span>
+        <!-- viewBox = el tamaño de la imagen en píxeles (1299 × 524): así las coordenadas son píxeles de la imagen -->
+        <svg class="titulo__dibujo" viewBox="0 0 1299 524" aria-hidden="true" focusable="false">
+          <!-- Aquí js/titulo.js pone las letras -->
+          <g class="titulo__letras"></g>
+          <!-- Estrella de cristal en el hueco de la A: centro en (218, 200), un poco girada y a 2.2 veces su tamaño.
+               Brazos: arriba el más largo (24), abajo 19, izquierda 15, derecha 13.
+               Cada brazo tiene dos caras: una con luz (la luz viene de arriba a la izquierda)
+               y otra en sombra. Eso es lo que la hace parecer de cristal en 3D. -->
+          <defs>
+            <linearGradient id="estrella-luz" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="0.6" stop-color="#e4e6ea" />
+              <stop offset="1" stop-color="#9a9ea6" />
+            </linearGradient>
+            <linearGradient id="estrella-sombra" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#b9bcc2" />
+              <stop offset="0.5" stop-color="#43464c" />
+              <stop offset="1" stop-color="#0f1013" />
+            </linearGradient>
+            <radialGradient id="estrella-nucleo">
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <g transform="translate(218 200) rotate(10) scale(2.2)">
+            <g class="titulo__destello">
+              <path class="estrella__sombra" d="M0 0L0 -24Q0.77 -6.04 1.7 -1.7ZM0 0L13 0Q3.63 0.77 1.7 1.7ZM0 0L0 19Q0.77 4.94 1.7 1.7ZM0 0L-15 0Q-4.06 0.77 -1.7 1.7Z" />
+              <path class="estrella__luz" d="M0 0L0 -24Q-0.77 -6.04 -1.7 -1.7ZM0 0L13 0Q3.63 -0.77 1.7 -1.7ZM0 0L0 19Q-0.77 4.94 -1.7 1.7ZM0 0L-15 0Q-4.06 -0.77 -1.7 -1.7Z" />
+              <!-- Filo brillante alrededor de toda la estrella -->
+              <path class="estrella__filo" d="M0 -24Q0.77 -6.04 1.7 -1.7Q3.63 -0.77 13 0Q3.63 0.77 1.7 1.7Q0.77 4.94 0 19Q-0.77 4.94 -1.7 1.7Q-4.06 0.77 -15 0Q-4.06 -0.77 -1.7 -1.7Q-0.77 -6.04 0 -24Z" />
+              <!-- Punto de luz blanca en el centro -->
+              <circle class="estrella__nucleo" r="4.5" />
+            </g>
+          </g>
+        </svg>
+        <!-- Aquí estallan las estrellas que chocan con las letras (js/titulo.js) -->
+        <canvas class="titulo__chispas" aria-hidden="true"></canvas>
+      </h1>
+
       <p class="intro__pista">Arrastra para girar · Elige un mundo</p>
     </div>
 
@@ -48,54 +104,70 @@
       <!-- Línea de la órbita (solo decorativa; el JS le da su tamaño) -->
       <div class="orbita__anillo" aria-hidden="true"></div>
 
-      <!-- Centro: agujero negro de "píxeles" + la L-dragón de cromo en 3D -->
+      <!-- Centro: agujero negro de "píxeles" + la Z-dragón de cromo en 3D -->
       <div class="orbita__logo agujero">
 
         <!-- Lienzo de atrás: la mitad trasera del disco, el halo y el agujero (js/agujero-negro.js) -->
         <canvas class="agujero__lienzo" aria-hidden="true"></canvas>
 
-        <!-- La L-dragón de cromo líquido en 3D: varias capas apiladas en profundidad.
-             Las de atrás (más oscuras) forman el grosor; la de delante lleva el cromo. -->
+        <!-- Forma y degradados de la Z, en un SVG aparte: el JS copia la Z en trozos
+             y así ninguna copia repite estos id -->
+        <svg class="letra3d__defs" width="0" height="0" aria-hidden="true">
+          <defs>
+            <!-- La silueta de la Z-dragón: el contorno de tu dibujo (stylesrefence/letters/Dragon-Z.jpg),
+                 calcado de su transparencia. No se ve directamente: el dibujo se pinta con la imagen
+                 img/dragon-z.png. La silueta sirve para el grosor 3D (las capas oscuras de atrás), para
+                 saber qué trozos tienen dragón, y para recortar la luz del ratón y los clics. -->
+            <path id="forma-z" d="M60.7 -1.1L59.3 -0.4L58.1 0.1L57.3 0.5L56.8 0.9L56.7 1.1L56.5 1.3L56.3 1.4L56.1 1.5L55.9 1.5L55.6 1.6L55.2 1.9L54.8 2.2L54.3 2.8L53.8 3.1L53.3 3.4L52.9 3.5L52.6 3.5L52.3 3.4L52.1 3.2L52 2.9L52 2.6L52.1 2.2L52.4 1.8L52.8 1.4L53.3 1.1L53.6 0.7L53.9 0.4L54 0.1L54 -0.1L53.9 -0.3L53.8 -0.4L53.6 -0.5L53.4 -0.5L53.2 -0.5L53.1 -0.4L53 -0.3L53 -0.2L52.9 -0.1L52.6 0.1L52.3 0.2L51.8 0.3L51.3 0.5L51 0.7L50.8 0.9L50.7 1.1L50.5 1.3L50.3 1.4L50.1 1.5L49.9 1.5L49.7 1.6L49.5 1.7L49.3 1.9L49.2 2.1L49 2.3L48.8 2.4L48.6 2.5L48.4 2.5L47.7 3L46.7 3.9L45.2 5.3L43.3 7.2L41.8 8.9L40.6 10.5L39.8 11.9L39.3 13.1L38.8 14.1L38.3 14.7L37.9 15L37.6 15L37.3 14.8L37.2 14.3L37.2 13.5L37.3 12.5L37.8 11.3L38.6 9.8L39.8 8L41.3 6L42.4 4.4L43.1 3.3L43.5 2.6L43.5 2.4L43.3 2.2L43 2.2L42.6 2.4L41.9 2.6L41.2 3.1L40.4 3.7L39.5 4.5L38.5 5.5L37.8 6.3L37.3 6.9L37 7.4L37 7.6L36.9 7.9L36.6 8.2L36.3 8.6L35.8 8.9L35.4 9.3L35.1 9.6L35 9.9L35 10.1L34.9 10.4L34.7 10.6L34.4 10.9L34.1 11.1L33.7 11.5L33.3 12.1L32.9 12.8L32.6 13.7L32.2 14.4L31.9 14.9L31.6 15.2L31.4 15.3L31.2 15.6L31 15.9L30.8 16.4L30.7 17.1L30.6 17.5L30.4 17.8L30.3 18L30.2 18L30.1 18.2L29.9 18.5L29.8 18.9L29.7 19.6L29.6 20L29.4 20.3L29.3 20.5L29.2 20.5L29.1 20.6L29 20.8L29 21.1L29 21.4L29 21.7L28.9 21.9L28.8 22L28.7 22L28.5 22.3L28.3 22.9L28.1 23.9L27.9 25.1L27.6 26.1L27.4 26.9L27.1 27.4L26.9 27.6L26.7 27.9L26.6 28.2L26.5 28.6L26.5 28.9L26.4 29.3L26.2 29.7L25.9 30.1L25.6 30.4L25.3 30.9L25.1 31.4L25 31.9L25 32.6L24.6 33.5L23.8 34.7L22.6 36.1L20.9 37.9L19.7 39.2L18.7 40.1L18.1 40.5L17.9 40.5L17.7 40.6L17.5 40.7L17.3 40.9L17.2 41.1L17 41.3L16.8 41.5L16.4 41.7L16.1 41.8L15.8 42L15.6 42.2L15.5 42.4L15.5 42.6L15.6 42.9L15.7 43.1L15.9 43.4L16.1 43.6L16.4 43.8L16.7 43.9L17.1 44L17.4 44L17.7 44.3L17.9 44.8L18 45.7L18 46.8L18 47.7L18.1 48.2L18.2 48.5L18.3 48.5L18.4 48.6L18.5 48.7L18.5 48.9L18.5 49.1L18.6 49.4L18.7 49.6L18.9 49.9L19.1 50.1L19.4 50.3L19.6 50.4L19.9 50.5L20.1 50.5L20.3 50.5L20.5 50.4L20.7 50.3L20.8 50.2L20.9 49.7L20.9 48.7L20.8 47.4L20.7 45.6L20.8 44.3L21.1 43.4L21.6 43L22.4 43L23 42.9L23.5 42.8L23.9 42.6L24.1 42.4L24.5 42.2L24.9 42.1L25.4 42L26.1 42L26.6 41.8L27 41.5L27.4 41.1L27.6 40.4L27.9 39.9L28.3 39.6L28.8 39.3L29.3 39.2L29.7 39L30 38.7L30.2 38.3L30.3 37.8L30.5 37.4L30.7 37.1L30.9 37L31.1 37L31.5 36.8L31.9 36.5L32.4 36.1L33.1 35.4L33.6 35L34 34.7L34.4 34.5L34.6 34.5L34.9 34.4L35.1 34.3L35.4 34.1L35.6 33.9L35.9 33.7L36.2 33.6L36.6 33.5L36.9 33.5L37.2 33.5L37.4 33.4L37.5 33.3L37.5 33.2L37.7 33.1L38.2 32.9L38.8 32.8L39.7 32.7L40.4 32.5L41 32.3L41.4 32.1L41.6 31.9L41.9 31.7L42.2 31.6L42.6 31.5L42.9 31.5L43.2 31.5L43.4 31.4L43.5 31.3L43.5 31.2L43.6 31.1L43.8 31L44.1 31L44.4 31L44.7 31L44.9 30.9L45 30.8L45 30.7L45.1 30.6L45.3 30.5L45.6 30.5L45.9 30.5L46.2 30.5L46.4 30.4L46.5 30.3L46.5 30.2L46.6 30.1L46.8 30L47.1 30L47.4 30L47.8 29.9L48 29.8L48.2 29.6L48.3 29.4L48.7 29.1L49.4 28.7L50.4 28.3L51.6 27.8L52.7 27.3L53.5 26.8L54.1 26.3L54.4 25.8L54.5 25.4L54.3 25.1L53.7 25L52.8 25L52.2 25L51.7 25.1L51.5 25.2L51.5 25.3L51.3 25.4L50.8 25.6L50 25.7L49 25.8L48.1 25.9L47.4 26L46.8 26L46.3 26L45.8 25.9L45.5 25.8L45.3 25.6L45.2 25.4L45 25.2L44.8 25.1L44.4 25L44.1 25L43.8 24.9L43.6 24.7L43.5 24.4L43.5 24.1L43.6 23.7L43.7 23.4L43.9 23.1L44.1 22.9L44.4 22.7L44.6 22.6L44.9 22.5L45.1 22.5L45.7 22.1L46.6 21.4L47.8 20.3L49.3 18.8L50.5 17.6L51.5 16.8L52.3 16.3L52.8 16.2L53.1 16L53.4 15.8L53.5 15.6L53.5 15.4L53.6 15.2L53.8 15L54.1 14.8L54.4 14.7L54.8 14.5L55.1 14.3L55.4 13.9L55.6 13.6L55.9 13.3L56.3 13.1L56.8 13L57.3 13L57.6 13.1L57.9 13.3L58 13.6L58 13.9L57.8 14.3L57.5 14.6L57.1 14.9L56.4 15.1L55.9 15.4L55.6 15.6L55.3 15.9L55.2 16.1L55 16.3L54.8 16.4L54.6 16.5L54.4 16.5L54.2 16.6L54.1 16.7L54 16.9L54 17.1L53.9 17.4L53.7 17.6L53.4 17.9L53.1 18.1L52.8 18.4L52.7 18.8L52.7 19.3L52.8 19.8L53.6 20.1L54.9 20.4L56.9 20.5L59.6 20.5L61.5 20.5L62.8 20.6L63.5 20.7L63.5 20.8L63.8 20.9L64.5 21.1L65.6 21.2L66.9 21.3L68 21.4L68.7 21.6L69 21.7L69 21.8L69.3 22L69.9 22.2L70.9 22.4L72.1 22.6L73.1 22.8L73.7 23L74 23.2L74 23.3L74.1 23.4L74.4 23.5L74.8 23.5L75.3 23.5L75.6 23.5L75.9 23.6L76 23.7L76 23.8L76.4 23.9L77.3 24L78.6 24L80.4 24L81.7 24L82.7 23.9L83.2 23.8L83.3 23.7L83.3 23.5L83.3 23.3L83.1 23.1L82.9 22.9L82.5 22.7L81.9 22.5L81.2 22.3L80.3 22.2L79.7 22.1L79.2 21.9L79 21.8L79 21.7L78.9 21.6L78.7 21.5L78.4 21.5L78.1 21.5L77.8 21.5L77.6 21.4L77.5 21.3L77.5 21.2L77.4 21.1L77.1 21L76.8 21L76.3 21L75.9 21L75.6 20.9L75.5 20.8L75.5 20.7L75.3 20.6L74.9 20.4L74.4 20.3L73.6 20.2L73 20L72.5 19.8L72.1 19.6L71.9 19.4L71.6 19.2L71.3 19.1L70.9 19L70.6 19L70.2 18.9L69.9 18.8L69.6 18.6L69.4 18.4L68.8 18.1L68 17.8L66.9 17.4L65.6 17.1L64.5 16.7L63.8 16.3L63.5 15.9L63.5 15.6L63.8 15.2L64.4 14.9L65.4 14.6L66.6 14.4L67.6 14.2L68.2 14L68.5 13.8L68.5 13.7L68.8 13.6L69.3 13.4L70.2 13.3L71.3 13.2L72.3 13L73.1 12.8L73.8 12.4L74.3 12.1L74.5 11.8L74.4 11.5L74.1 11.3L73.4 11.2L73 11.1L72.7 11.1L72.5 11.2L72.5 11.3L71.9 11.4L70.6 11.6L68.8 11.7L66.3 11.8L64.4 11.9L63.1 12.1L62.5 12.2L62.5 12.3L62.3 12.4L61.7 12.6L61 12.7L60 12.8L59.3 12.8L58.8 12.7L58.5 12.4L58.5 12.1L58.6 11.7L58.7 11.4L58.9 11.1L59.1 10.9L59.4 10.7L59.6 10.6L59.9 10.5L60.1 10.5L60.3 10.4L60.5 10.3L60.7 10.1L60.8 9.9L61 9.7L61.2 9.6L61.4 9.5L61.6 9.5L61.8 9.5L61.9 9.4L62 9.3L62 9.2L62.1 9.1L62.2 9L62.4 9L62.6 9L62.8 9L62.9 8.9L63 8.8L63 8.7L63.1 8.6L63.2 8.5L63.4 8.5L63.6 8.5L63.8 8.5L63.9 8.4L64 8.3L64 8.2L64.1 8.1L64.2 8L64.4 8L64.6 8L64.8 8L64.9 7.9L65 7.8L65 7.7L65.1 7.6L65.2 7.5L65.4 7.5L65.6 7.5L65.9 7.4L66.3 7.2L66.8 6.9L67.3 6.6L67.7 6.3L68.2 6.1L68.6 6L68.9 6L69.2 6L69.4 5.9L69.5 5.8L69.5 5.7L69.6 5.6L69.7 5.5L69.9 5.5L70.1 5.5L70.3 5.5L70.4 5.4L70.5 5.3L70.5 5.2L70.6 5.1L70.7 5L70.9 5L71.1 5L71.4 4.9L71.8 4.7L72.3 4.4L72.8 4.1L73 3.8L72.9 3.6L72.6 3.5L71.9 3.5L71.5 3.5L71.2 3.6L71 3.7L71 3.8L70.8 3.9L70.5 4L70.1 4L69.4 4L69 4L68.7 4.1L68.5 4.2L68.5 4.3L68.3 4.4L67.8 4.6L67.2 4.7L66.3 4.8L65.6 5L65 5.2L64.6 5.4L64.4 5.6L63.8 5.9L63 6.2L61.9 6.6L60.6 6.9L59.5 7.3L58.8 7.5L58.5 7.7L58.5 7.8L58.3 8L57.8 8.3L57 8.6L56 8.9L55.2 9.3L54.7 9.6L54.3 9.9L54.2 10.1L54 10.3L53.8 10.4L53.6 10.5L53.4 10.5L53.1 10.6L52.9 10.7L52.6 10.9L52.4 11.1L52.1 11.3L51.8 11.4L51.4 11.5L51.1 11.5L50.8 11.3L50.7 11L50.7 10.6L50.8 9.9L51.2 9.2L51.8 8.3L52.7 7.3L53.8 6.2L54.7 5.3L55.4 4.8L55.9 4.5L56.1 4.5L56.4 4.4L56.7 4.1L57.1 3.8L57.4 3.3L57.8 2.9L58.1 2.6L58.4 2.5L58.6 2.5L58.9 2.4L59.1 2.2L59.4 1.9L59.6 1.6L60 1.2L60.4 0.9L60.9 0.6L61.6 0.4L62.1 0.1L62.6 -0.2L63.1 -0.6L63.4 -0.9L63.7 -1.3L63.9 -1.5L64 -1.7L64 -1.8L63.9 -1.9L63.8 -2L63.6 -2L63.4 -2L62.8 -1.8L61.9 -1.5ZM73.9 31.2L73.6 31.3L73.2 31.5L72.9 31.7L72.6 31.9L72.4 32.1L72.2 32.4L72.1 32.6L72 32.9L72 33.1L71.9 33.3L71.8 33.4L71.6 33.5L71.4 33.5L71.1 33.6L70.7 33.8L70.3 34.1L69.8 34.4L68.4 34.8L66.1 35L63 35.2L59 35.3L55.9 35.5L53.8 35.7L52.6 35.9L52.4 36.1L52.2 36.4L52.1 36.7L52 37.1L52 37.4L52 37.7L51.9 37.9L51.8 38L51.7 38L51.5 38.5L51.2 39.4L50.8 40.8L50.3 42.7L50.2 43.8L50.7 44L51.6 43.4L52.9 42.1L54.6 41L56.4 40.3L58.6 39.8L60.9 39.7L62.7 39.7L63.9 39.8L64.5 40.1L64.5 40.4L64.4 40.8L64.2 41.1L63.9 41.4L63.6 41.6L63.3 41.9L63.1 42.1L63 42.4L63 42.6L62.9 42.9L62.7 43.1L62.4 43.4L62.1 43.6L61.8 43.9L61.6 44.1L61.5 44.4L61.5 44.6L61.4 44.8L61.3 45L61.1 45.2L60.9 45.3L60.7 45.5L60.6 45.7L60.5 45.9L60.5 46.1L60.4 46.4L60.1 46.8L59.8 47.3L59.3 47.8L58.8 48.3L58.5 48.8L58.3 49.3L58.2 49.8L58 50.2L57.8 50.5L57.6 50.7L57.4 50.8L57.2 51L57.1 51.3L57 51.6L57 51.9L56.9 52.3L56.6 52.7L56.3 53.1L55.8 53.4L55.3 53.8L55 54.2L54.8 54.6L54.7 54.9L54.7 55.2L54.9 55.4L55.3 55.5L55.8 55.5L56.1 55.7L56.3 56L56.3 56.4L56.2 57.1L55.4 58.2L53.9 60L51.7 62.3L48.8 65.2L46.7 67.4L45.2 69L44.5 69.9L44.5 70.1L44.2 70.7L43.5 71.5L42.4 72.6L41.1 73.9L40 75L39.3 75.8L39 76.4L39 76.6L38.9 76.9L38.6 77.2L38.3 77.6L37.8 77.9L37.4 78.3L37.1 78.6L37 78.9L37 79.1L36.9 79.4L36.6 79.7L36.3 80.1L35.8 80.4L35.3 80.9L34.9 81.4L34.6 81.9L34.4 82.6L34.1 83.1L33.7 83.6L33.3 84.1L32.8 84.4L32.4 84.8L32.1 85.1L32 85.4L32 85.6L31.8 86L31.4 86.4L30.9 86.9L30.1 87.6L29.6 88.1L29.2 88.5L29 88.9L29 89.1L28.9 89.4L28.7 89.7L28.4 90.1L28.1 90.4L27.8 90.8L27.6 91.1L27.5 91.4L27.5 91.6L27.6 91.8L27.8 91.8L28.1 91.8L28.4 91.7L28.9 91.4L29.4 91.1L29.9 90.6L30.6 89.9L31 89.4L31.3 89L31.5 88.6L31.5 88.4L31.9 87.8L32.6 87L33.8 85.9L35.3 84.6L36.4 83.5L37.1 82.7L37.5 82.1L37.5 81.9L37.6 81.6L37.7 81.4L37.9 81.1L38.1 80.9L38.4 80.7L38.8 80.5L39.3 80.3L39.8 80.2L40.3 79.9L41 79.4L41.8 78.7L42.7 77.8L44.8 77.2L48 76.7L52.4 76.5L58.1 76.5L62.3 76.5L65.1 76.6L66.5 76.7L66.5 76.8L66.9 76.9L67.7 76.9L68.9 76.8L70.6 76.7L71.9 76.6L73 76.5L73.8 76.5L74.3 76.5L74.7 76.6L75 76.9L75.2 77.3L75.3 77.8L75.5 78.2L75.8 78.7L76.1 79.1L76.4 79.4L76.9 79.8L77.4 80L77.9 80.2L78.6 80.3L79 80.3L79.3 80.1L79.5 79.8L79.5 79.3L79.5 78.9L79.4 78.6L79.3 78.5L79.2 78.5L79.1 78.4L79 78.2L79 77.9L79 77.6L78.9 77.3L78.8 77L78.6 76.8L78.4 76.7L78.2 76.5L78.1 76.2L78 75.8L78 75.3L78 74.9L77.9 74.6L77.8 74.5L77.7 74.5L77.6 74.4L77.5 74.1L77.5 73.8L77.5 73.3L77.5 72.9L77.4 72.6L77.3 72.5L77.2 72.5L77.1 72.4L77 72.1L77 71.8L77 71.3L77 70.9L76.9 70.6L76.8 70.5L76.7 70.5L76.6 70.4L76.4 70.1L76.3 69.8L76.2 69.3L76 68.9L75.8 68.6L75.6 68.5L75.4 68.5L75.2 68.7L75 69L74.8 69.4L74.7 70.1L74.5 70.6L74.3 71L74.1 71.4L73.9 71.6L72.2 71.8L69.2 71.9L64.7 72L58.8 72L54.4 71.9L51.5 71.6L50 71.3L50 70.8L50.1 70.3L50.2 69.9L50.4 69.6L50.6 69.4L50.7 69.2L50.7 69.1L50.4 69L50.1 69L49.8 68.9L49.6 68.7L49.5 68.4L49.5 68.1L49.6 67.7L49.7 67.4L49.9 67.1L50.1 66.9L50.5 66.7L51 66.7L51.6 66.7L52.4 66.8L53.1 66.8L53.7 66.6L54.3 66.3L54.8 65.8L55.3 65.3L55.8 65L56.3 64.8L56.8 64.7L57.5 64.3L58.4 63.5L59.6 62.4L60.9 61.1L62 60L62.7 59.2L63 58.6L63 58.4L63.1 58.2L63.2 58L63.4 57.8L63.6 57.7L63.8 57.5L63.9 57.3L64 56.9L64 56.6L63.8 56.3L63.5 56.1L63.1 56L62.4 56L62 55.9L61.7 55.6L61.5 55.3L61.5 54.8L61.7 54.2L62.3 53.5L63 52.7L64 51.8L64.8 51.1L65.3 50.4L65.7 49.9L65.8 49.6L66 49.3L66.3 49.1L66.6 49L66.9 49L67.2 49.2L67.3 49.5L67.3 49.9L67.2 50.6L67.3 50.9L67.6 50.9L68.1 50.6L68.9 49.9L69.4 49.4L69.8 49L70 48.6L70 48.4L70.1 48.1L70.3 47.9L70.6 47.6L70.9 47.4L71.2 47.1L71.4 46.9L71.5 46.6L71.5 46.4L71.7 46L72.1 45.5L72.6 44.9L73.4 44.1L73.9 43.4L74.2 42.8L74.3 42.3L74.2 41.8L74.2 41.4L74.2 41.1L74.4 41L74.6 41L74.9 40.9L75.1 40.7L75.4 40.4L75.6 40.1L75.9 39.8L76.1 39.6L76.4 39.5L76.6 39.5L76.9 39.4L77.1 39.3L77.4 39.1L77.6 38.9L77.9 38.7L78.2 38.6L78.6 38.5L78.9 38.5L79.2 38.6L79.4 38.7L79.5 38.9L79.5 39.1L79.8 39.3L80.5 39.3L81.6 39.3L82.9 39.2L84 39.1L84.7 38.9L85 38.8L85 38.7L85.3 38.6L85.9 38.6L86.9 38.7L88.1 38.8L89.1 38.9L89.7 39.1L90 39.2L90 39.3L90.2 39.4L90.6 39.6L91.1 39.7L91.9 39.8L92.4 39.9L92.8 40.1L93 40.2L93 40.3L93.3 40.5L93.8 40.8L94.5 41.1L95.5 41.4L96.7 42.1L98 43L99.4 44.3L101.1 45.7L102.3 46.7L103 47.2L103.3 47.1L103.2 46.4L103.1 46L102.9 45.7L102.8 45.5L102.7 45.5L102.6 45.4L102.4 45.1L102.3 44.8L102.2 44.3L102 43.8L101.8 43.5L101.6 43.3L101.4 43.2L101.2 43L101.1 42.8L101 42.6L101 42.4L100.8 42L100.3 41.4L99.7 40.7L98.8 39.8L98.1 39.2L97.5 38.7L97.1 38.5L96.9 38.5L96.6 38.4L96.4 38.2L96.1 37.9L95.9 37.6L95.6 37.3L95.4 37.1L95.1 37L94.9 37L94.7 36.9L94.5 36.8L94.3 36.6L94.2 36.4L94 36.2L93.8 36.1L93.6 36L93.4 36L93.2 36L93.1 35.9L93 35.8L93 35.7L92.9 35.6L92.8 35.5L92.6 35.5L92.4 35.5L92.1 35.4L91.7 35.2L91.3 34.9L90.8 34.6L90.1 34.2L89.3 33.9L88.3 33.6L87.2 33.4L86.3 33.2L85.8 33L85.5 32.8L85.5 32.7L84.8 32.5L83.4 32.3L81.4 31.9L78.6 31.6L76.5 31.3L74.9 31.2ZM42.1 33.7L41.9 33.8L41.7 34.1L41.6 34.4L41.5 34.9L41.5 35.6L41.6 36L41.7 36.3L41.9 36.5L42.1 36.5L42.4 36.6L42.6 36.7L42.9 36.9L43.1 37.1L43.5 37.3L43.9 37.4L44.4 37.5L45.1 37.5L45.6 37.5L46 37.4L46.4 37.3L46.6 37.2L46.8 37L46.9 36.8L47 36.6L47 36.4L46.9 36.1L46.6 35.8L46.3 35.4L45.8 35.1L45.4 34.7L45.1 34.4L45 34.1L45 33.9L44.8 33.7L44.5 33.6L44.1 33.5L43.4 33.5L42.9 33.5L42.5 33.6ZM35 37.4L34 38.1L33.3 38.6L32.8 39L32.5 39.4L32.5 39.6L32.4 39.9L32.1 40.3L31.8 40.8L31.3 41.3L30.8 41.8L30.5 42.3L30.3 42.8L30.2 43.3L30 43.7L29.8 44L29.6 44.2L29.4 44.3L29.1 44.7L28.9 45.3L28.6 46.2L28.4 47.3L28.3 48.3L28.3 49L28.6 49.6L28.9 49.9L29.2 50.3L29.4 50.6L29.5 50.9L29.5 51.1L29.6 51.3L29.8 51.4L30.1 51.5L30.4 51.5L30.7 51.2L30.9 50.7L31 49.8L31 48.7L31 47.8L31.1 47.3L31.2 47L31.3 47L31.4 46.8L31.6 46.4L31.7 45.9L31.8 45.1L32 44.5L32.2 44.1L32.4 43.8L32.6 43.7L32.8 43.4L33 43.1L33.2 42.6L33.3 41.9L33.7 41.2L34.3 40.4L35.2 39.5L36.3 38.5L37.2 37.7L37.7 37.2L38 36.8L38 36.7L37.9 36.6L37.7 36.5L37.4 36.5L37.1 36.5L36.5 36.7L35.8 37ZM103.8 59L103.7 59L103.6 59.1L103.5 59.3L103.5 59.6L103.5 59.9L103.5 60.2L103.4 60.4L103.3 60.5L103.2 60.5L103.1 60.6L103 60.8L103 61.1L103 61.4L103 61.7L102.9 61.9L102.8 62L102.7 62L102.6 62.1L102.5 62.3L102.5 62.6L102.5 62.9L102.5 63.2L102.4 63.4L102.3 63.5L102.2 63.5L102.1 63.6L102 63.8L102 64.1L102 64.4L101.9 64.8L101.8 65.1L101.6 65.4L101.4 65.6L101.2 66L101 66.4L100.8 66.9L100.7 67.6L100.7 68L100.8 68.2L101.1 68.1L101.4 67.9L101.7 67.6L101.9 67.4L102 67.1L102 66.9L102.1 66.6L102.2 66.4L102.4 66.1L102.6 65.9L102.8 65.6L102.9 65.3L103 64.9L103 64.6L103.1 64.2L103.2 63.9L103.4 63.6L103.6 63.4L103.8 62.9L103.9 62.3L104 61.5L104 60.5L104 59.8L103.9 59.3Z" />
+            <!-- Degradado de cromo del título: platino como el dragón, con mucho contraste
+                 (blancos puros junto a bandas casi negras), como metal líquido pulido -->
+            <linearGradient id="cromo" x1="0" y1="0" x2="30" y2="100" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="0.12" stop-color="#e4e6ea" />
+              <stop offset="0.24" stop-color="#6d7178" />
+              <stop offset="0.34" stop-color="#1a1b1f" />
+              <stop offset="0.48" stop-color="#0c0d10" />
+              <stop offset="0.57" stop-color="#43464c" />
+              <stop offset="0.66" stop-color="#d4d6db" />
+              <stop offset="0.72" stop-color="#ffffff" />
+              <stop offset="0.86" stop-color="#8b8e95" />
+              <stop offset="1" stop-color="#ffffff" />
+              <!-- Desliza el degradado: los reflejos "fluyen" como en un líquido -->
+              <animateTransform attributeName="gradientTransform" type="translate"
+                values="0 0; 30 100" dur="8s" repeatCount="indefinite" />
+            </linearGradient>
+            <!-- Ondas de luz sobre el cromo del dibujo: un degradado redondo de blanco medio transparente.
+                 En el centro (cx, cy) hay un punto de luz y de ahí salen anillos hacia fuera. El JS va
+                 reescribiendo la transparencia de cada parada para que los anillos avancen
+                 (ver "El cromo" en js/agujero-negro.js). Estos valores son los de reposo, por si el JS no carga. -->
+            <radialGradient id="cromo-z" cx="59" cy="55" r="75" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#ffffff" stop-opacity="0.6" />
+              <stop offset="0.3" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+            <!-- Molde de las ondas: el propio dibujo. Con una máscara, lo claro deja pasar la luz y lo
+                 oscuro la tapa: así las ondas solo brillan sobre el metal claro, como un reflejo de verdad -->
+            <mask id="mascara-z" maskUnits="userSpaceOnUse" x="10" y="-5" width="100" height="100">
+              <image href="img/dragon-z.png" x="10" y="-5" width="100" height="100" />
+            </mask>
+          </defs>
+        </svg>
+
+        <!-- La Z-dragón: tu dibujo pegado a la esfera del agujero, inclinado con ella.
+             El JS lo corta en trozos para doblarlo sobre la esfera (ver js/agujero-negro.js). -->
         <div class="letra3d" aria-hidden="true">
           <div class="letra3d__cuerpo">
-            <svg class="letra3d__capa" style="--capa: 6" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
-            <svg class="letra3d__capa" style="--capa: 5" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
-            <svg class="letra3d__capa" style="--capa: 4" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
-            <svg class="letra3d__capa" style="--capa: 3" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
-            <svg class="letra3d__capa" style="--capa: 2" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
-            <svg class="letra3d__capa" style="--capa: 1" viewBox="10 -5 100 100"><use href="#forma-l" /></svg>
-
-            <!-- Cara de delante -->
             <svg class="letra3d__frente" viewBox="10 -5 100 100">
-              <defs>
-                <!-- La forma de la L-dragón (las capas de atrás la reutilizan con <use>):
-                     el palo es el cuerpo y arriba la cabeza, con una oreja larga; el pie es la cola.
-                     El último trocito (M51 12.6...) es el ojo: un hueco gracias a fill-rule="evenodd". -->
-                <path id="forma-l" fill-rule="evenodd" d="M64 12 C58 14 54 16 52 17 C55 18 58 19 60 21 C55 22 50 22 48 24 C48 28 48 32 49 36 C52 35 55 33 58 29 C56 36 52 40 50 44 C51 52 51 60 50 66 C60 67 76 63 96 48 C82 64 72 71 64 74 C65 78 66 81 68 84 C63 82 60 79 57 76 C51 78 45 80 40 82 C36 85 32 88 28 90 C31 86 35 82 39 76 C38 62 41 40 43 26 C43 22 43.5 19 44 17 C38 12 30 5 19 -3 C31 2 40 7 48 11 C54 9 60 10 64 12 Z M51 12.6 L55.5 11.8 L53.6 14 Z" />
-                <!-- Degradado de cromo: blancos y platas con bandas oscuras, como metal líquido -->
-                <linearGradient id="cromo" x1="0" y1="0" x2="30" y2="100" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
-                  <stop offset="0" stop-color="#ffffff" />
-                  <stop offset="0.18" stop-color="#dbe4f4" />
-                  <stop offset="0.32" stop-color="#6c7996" />
-                  <stop offset="0.44" stop-color="#3a4665" />
-                  <stop offset="0.52" stop-color="#2a3350" />
-                  <stop offset="0.62" stop-color="#a3b3d3" />
-                  <stop offset="0.74" stop-color="#ffffff" />
-                  <stop offset="0.88" stop-color="#8190b2" />
-                  <stop offset="1" stop-color="#ffffff" />
-                  <!-- Desliza el degradado: los reflejos "fluyen" como en un líquido -->
-                  <animateTransform attributeName="gradientTransform" type="translate"
-                    values="0 0; 30 100" dur="8s" repeatCount="indefinite" />
-                </linearGradient>
-              </defs>
-              <use class="letra3d__cromo" href="#forma-l" />
-              <!-- El ojo: apagado mientras duerme, se enciende al despertar (pasar el ratón) -->
-              <path class="letra3d__ojo" d="M51 12.6 L55.5 11.8 L53.6 14 Z" />
+              <!-- Tu dibujo (img/dragon-z.png: Dragon-Z.jpg con el fondo negro vuelto transparente) -->
+              <image class="letra3d__dibujo" href="img/dragon-z.png" x="10" y="-5" width="100" height="100" />
+              <!-- Las ondas de luz, recortadas con el propio dibujo -->
+              <rect class="letra3d__ondas" x="10" y="-5" width="100" height="100" mask="url(#mascara-z)" />
+              <!-- El brillo del ojo: apagado mientras duerme, se enciende al despertar (pasar el ratón) -->
+              <circle class="letra3d__ojo" cx="31.6" cy="30.8" r="1.6" />
             </svg>
           </div>
         </div>
 
-        <!-- Lienzo de delante: la mitad delantera del disco va ENCIMA de la L,
+        <!-- Lienzo de delante: la mitad delantera del disco va ENCIMA de la Z,
              para que los píxeles que pasan por delante del agujero también tapen la letra -->
         <canvas class="agujero__lienzo agujero__lienzo--delante" aria-hidden="true"></canvas>
 
@@ -120,7 +192,207 @@
 
           <li class="planeta planeta--hollow-knight" data-estado="proximamente">
             <div class="planeta__enlace">
-              <span class="planeta__esfera" aria-hidden="true"></span>
+              <span class="planeta__esfera" aria-hidden="true">
+                <!-- Dibujo del planeta (estilos y animaciones en css/planetas/hollow-knight.css).
+                     Coordenadas: el planeta es un círculo de radio 50 con el centro en (0, 0).
+                     El dibujo es más grande que la esfera (de -110 a 110) para que la estatua,
+                     la lluvia y el halo puedan salirse del círculo.
+                     Todo es un diseño original inspirado en el ambiente del juego. -->
+                <svg class="planeta__arte hk" viewBox="-110 -110 220 220" focusable="false">
+                  <defs>
+                    <!-- Cuerpo del planeta: la luz viene de arriba a la izquierda -->
+                    <radialGradient id="hk-cuerpo" cx="0.34" cy="0.28" r="0.78">
+                      <stop offset="0" stop-color="#d4cae4" />
+                      <stop offset="0.16" stop-color="#8c78a6" />
+                      <stop offset="0.42" stop-color="#4d4b72" />
+                      <stop offset="0.68" stop-color="#22325b" />
+                      <stop offset="1" stop-color="#1d1840" />
+                    </radialGradient>
+                    <!-- Lado de noche: oscurece la parte de abajo a la derecha -->
+                    <radialGradient id="hk-noche" cx="0.3" cy="0.24" r="0.85">
+                      <stop offset="0.55" stop-color="#0e0b24" stop-opacity="0" />
+                      <stop offset="1" stop-color="#0e0b24" stop-opacity="0.8" />
+                    </radialGradient>
+                    <!-- Atmósfera lila alrededor del planeta -->
+                    <radialGradient id="hk-atmosfera" r="0.5">
+                      <stop offset="0.78" stop-color="#b5a9c8" stop-opacity="0" />
+                      <stop offset="0.84" stop-color="#b5a9c8" stop-opacity="0.55" />
+                      <stop offset="1" stop-color="#8c78a6" stop-opacity="0" />
+                    </radialGradient>
+                    <!-- Luz blanca de las farolas y de la zona de descanso -->
+                    <radialGradient id="hk-luz" r="0.5">
+                      <stop offset="0" stop-color="#f1eefa" stop-opacity="0.85" />
+                      <stop offset="0.35" stop-color="#b5a9c8" stop-opacity="0.4" />
+                      <stop offset="1" stop-color="#b5a9c8" stop-opacity="0" />
+                    </radialGradient>
+                    <!-- Recorte con la forma del planeta (para pintar su superficie) -->
+                    <clipPath id="hk-recorte">
+                      <circle r="50" />
+                    </clipPath>
+                    <!-- Gotas de lluvia: un "azulejo" que se repite. Dos tamaños para que no se note la cuadrícula -->
+                    <pattern id="hk-gotas" width="11" height="31" patternUnits="userSpaceOnUse">
+                      <path d="M2.5 3v7M8 18v5" stroke="#d4cae4" stroke-width="0.4" stroke-linecap="round" opacity="0.55" />
+                    </pattern>
+                    <pattern id="hk-gotas-lejos" width="17" height="37" patternUnits="userSpaceOnUse">
+                      <path d="M5 6v5M13 25v4" stroke="#8c78a6" stroke-width="0.35" stroke-linecap="round" opacity="0.7" />
+                    </pattern>
+                    <!-- La lluvia se desvanece en los bordes (blanco = se ve, negro = no) -->
+                    <radialGradient id="hk-fundido" r="0.5">
+                      <stop offset="0.5" stop-color="#fff" />
+                      <stop offset="1" stop-color="#000" />
+                    </radialGradient>
+                    <mask id="hk-mascara-lluvia" maskUnits="userSpaceOnUse" x="-110" y="-110" width="220" height="220">
+                      <circle r="95" fill="url(#hk-fundido)" />
+                    </mask>
+                  </defs>
+
+                  <!-- 1. Atmósfera -->
+                  <circle r="60" fill="url(#hk-atmosfera)" />
+
+                  <!-- 2. Lluvia lejana (detrás del planeta) -->
+                  <g mask="url(#hk-mascara-lluvia)">
+                    <rect class="hk__lluvia hk__lluvia--lejos" x="-110" y="-184" width="220" height="330" fill="url(#hk-gotas-lejos)" />
+                  </g>
+
+                  <!-- 3. Esfera y superficie de piedra -->
+                  <circle r="50" fill="url(#hk-cuerpo)" />
+                  <g clip-path="url(#hk-recorte)">
+                    <!-- Terrazas de piedra, como los pisos de una ciudad hundida.
+                         Cada una tiene: relleno, sombra debajo (da el escalón) y filo iluminado arriba -->
+                    <path d="M-54 -10C-42-20-30-12-20-21S-2-26 6-35L11-31C3-22-10-23-18-15S-40-10-54-2Z" fill="#4a5e88" opacity="0.4" />
+                    <path d="M-54 -1C-40-9-26-6-18-14S2-22 11-30" fill="none" stroke="#161d3b" stroke-width="2" opacity="0.55" />
+                    <path d="M-54 -10C-42-20-30-12-20-21S-2-26 6-35" fill="none" stroke="#d4cae4" stroke-width="1.1" stroke-linecap="round" opacity="0.7" />
+
+                    <path d="M-52 20C-38 13-22 21-8 13S16 12 30 3L35 8C21 18 8 13-6 21S-36 22-52 28Z" fill="#4d4b72" opacity="0.7" />
+                    <path d="M-52 29C-36 23-20 22-6 22S22 18 35 9" fill="none" stroke="#161d3b" stroke-width="2" opacity="0.6" />
+                    <path d="M-52 20C-38 13-22 21-8 13S16 12 30 3" fill="none" stroke="#b5a9c8" stroke-width="1" stroke-linecap="round" opacity="0.7" />
+
+                    <path d="M-34 39C-20 33-4 39 10 33S30 30 44 22L48 29C34 37 22 35 10 41S-18 45-34 47Z" fill="#22325b" opacity="0.9" />
+                    <path d="M-34 39C-20 33-4 39 10 33S30 30 44 22" fill="none" stroke="#4a5e88" stroke-width="1" />
+
+                    <!-- Pinceladas de luz en el lado iluminado -->
+                    <g fill="none" stroke="#e6def2" stroke-linecap="round" opacity="0.35">
+                      <path d="M-38 -24C-32-32-24-37-14-39" stroke-width="2" />
+                      <path d="M-42 -14C-38-19-34-22-29-24" stroke-width="1.3" />
+                      <path d="M-20 -33C-15-35-10-36-5-36" stroke-width="1" />
+                    </g>
+
+                    <!-- Vitrales: arcos puntiagudos grabados en la piedra -->
+                    <g fill="#1d1840" fill-opacity="0.45" stroke="#b5a9c8" stroke-width="0.8" stroke-opacity="0.6">
+                      <path d="M-42 11V-1Q-42-9-35-12-28-9-28-1V11" />
+                      <path d="M-24 9V-5Q-24-14-16.5-17-9-14-9-5V9" />
+                      <path d="M-35 11V-4M-16.5 9V-10M-24-3Q-16.5-9-9-3" fill="none" />
+                    </g>
+
+                    <!-- Grietas color ciruela -->
+                    <path d="M4 -6l6 4-2 6 7 5M20 -18l4 5-3 4" fill="none" stroke="#4b2a4a" stroke-width="1.2" stroke-linecap="round" />
+
+                    <!-- Ventanitas encendidas (como las farolas de la ciudad) -->
+                    <g fill="url(#hk-luz)">
+                      <circle cx="-35" cy="-3" r="5" />
+                      <circle cx="-6" cy="-20" r="4" />
+                      <circle cx="4" cy="17" r="4" />
+                    </g>
+                    <g fill="#f6f3fc">
+                      <circle cx="-35" cy="-3" r="1.1" />
+                      <circle cx="-6" cy="-20" r="0.9" />
+                      <circle cx="-46" cy="6" r="0.7" />
+                      <circle cx="4" cy="17" r="0.9" />
+                      <circle cx="-18" cy="27" r="0.7" />
+                      <circle cx="16" cy="-27" r="0.7" />
+                    </g>
+
+                    <!-- Lado de noche -->
+                    <circle r="50" fill="url(#hk-noche)" />
+                  </g>
+                  <!-- Borde iluminado por detrás (abajo a la derecha) -->
+                  <path d="M48.3 8.5A49 49 0 0 1-16.8 46" fill="none" stroke="#b5a9c8" stroke-width="2" stroke-linecap="round" opacity="0.8" />
+
+                  <!-- 4. La estatua de la fuente, en el polo norte -->
+                  <g class="hk__estatua" stroke-linejoin="round">
+                    <!-- Resplandor detrás de la estatua: la silueta oscura resalta sobre él -->
+                    <ellipse cx="0" cy="-74" rx="30" ry="36" fill="url(#hk-luz)" />
+                    <!-- Montículo de piedras redondas que sale del planeta -->
+                    <path d="M-24 -43C-20-50-11-53.5 0-53.5S20-50 24-43Z" fill="#161d3b" />
+                    <g fill="#1d1840" stroke="#4d4b72" stroke-width="0.6">
+                      <circle cx="-18" cy="-47" r="3" />
+                      <circle cx="-13" cy="-49.5" r="3.3" />
+                      <circle cx="-5" cy="-51.5" r="3" />
+                      <circle cx="4" cy="-51.5" r="3.3" />
+                      <circle cx="12" cy="-49.5" r="3" />
+                      <circle cx="18" cy="-47" r="3" />
+                    </g>
+                    <!-- Dos columnas curvas a los lados -->
+                    <g fill="#1d1840" stroke="#8c78a6" stroke-width="0.7">
+                      <path d="M-17 -52C-22-60-28-68-27-80-25.5-82-23-81.5-22.5-79-21-70-14-62-8-53Z" />
+                      <path d="M17 -52C22-60 28-68 27-80 25.5-82 23-81.5 22.5-79 21-70 14-62 8-53Z" />
+                    </g>
+                    <!-- Pedestal -->
+                    <rect x="-12" y="-58.5" width="24" height="6" rx="1.5" fill="#161d3b" stroke="#4d4b72" stroke-width="0.6" />
+                    <!-- Pétalos de piedra abiertos, como una flor -->
+                    <g fill="#1d1840" stroke="#b5a9c8" stroke-width="0.6">
+                      <path d="M-4 -56C-12-62-21-61-27-54-20-53-11-53-4-54Z" />
+                      <path d="M4 -56C12-62 21-61 27-54 20-53 11-53 4-54Z" />
+                      <path d="M-2 -58C-7-65-14-66-19-62-13-59-8-58-2-57Z" />
+                      <path d="M2 -58C7-65 14-66 19-62 13-59 8-58 2-57Z" />
+                    </g>
+                    <!-- Agua que cae de los pétalos (las "lágrimas" de la fuente) -->
+                    <path d="M-26.5 -53C-28-50-29-47-29.5-43M26.5 -53C28-50 29-47 29.5-43" fill="none" stroke="#d4cae4" stroke-width="0.8" stroke-dasharray="2 2" opacity="0.8" />
+                    <!-- Figura con capa -->
+                    <path d="M-9.5 -58C-10.5-66-9-73-5.5-79-3-81 3-81 5.5-79 9-73 10.5-66 9.5-58L5.5-60.5 2.5-57.5-0.5-60.5-3.5-57.5-6.5-60.5Z" fill="#161d3b" stroke="#b5a9c8" stroke-width="0.7" />
+                    <!-- Cuernos en forma de lira -->
+                    <path d="M-3.5 -88C-11-90-15.5-97-10.5-108.5-10.5-100.5-7.5-95-1-91ZM3.5 -88C11-90 15.5-97 10.5-108.5 10.5-100.5 7.5-95 1-91Z" fill="#161d3b" stroke="#b5a9c8" stroke-width="0.7" />
+                    <!-- Cabeza: una máscara alargada que termina en punta -->
+                    <path d="M-5 -86.5C-5-92 5-92 5-86.5 5-82.5 2-79.5 0-78.5-2-79.5-5-82.5-5-86.5Z" fill="#161d3b" stroke="#b5a9c8" stroke-width="0.7" />
+                  </g>
+
+                  <!-- 5. La banca de descanso, en la ladera derecha.
+                       translate() la lleva al borde del planeta, rotate() la pone "de pie" sobre él
+                       y scale() la agranda. Dentro del grupo el suelo es y = 0 y "arriba" es y negativa. -->
+                  <g class="hk__descanso" transform="translate(37.2 -33.5) rotate(48) scale(1.2)">
+                    <!-- Charco de luz de la zona de descanso -->
+                    <ellipse cx="4" cy="-10" rx="22" ry="17" fill="url(#hk-luz)" />
+                    <!-- Farola de dos globos -->
+                    <g stroke="#161d3b" stroke-width="1.1" fill="none" stroke-linecap="round">
+                      <path d="M15 2V-22M13 2h4" />
+                      <path d="M15 -22C15-25.5 10.5-25.5 10.5-22M15 -22C15-25.5 19.5-25.5 19.5-22M15 -22v-4" />
+                    </g>
+                    <circle cx="15" cy="-20" r="8" fill="url(#hk-luz)" />
+                    <circle cx="10.5" cy="-20.3" r="1.8" fill="#f6f3fc" />
+                    <circle cx="19.5" cy="-20.3" r="1.8" fill="#f6f3fc" />
+                    <!-- Banca de hierro forjado -->
+                    <g stroke="#161d3b" fill="none" stroke-linecap="round">
+                      <!-- Patas curvas -->
+                      <path d="M-9 -5.5C-9.3-3-10-1-11.5 0.4M9 -5.5C9.3-3 10-1 11.5 0.4M-5 -5.5V0.2M5 -5.5V0.2" stroke-width="1.1" />
+                      <!-- Respaldo y reposabrazos -->
+                      <path d="M-10 -6V-12C-6-13.6 6-13.6 10-12V-6" stroke-width="1.1" />
+                      <path d="M-10 -7.5C-12.5-7.5-13-9.5-11.3-10M10 -7.5C12.5-7.5 13-9.5 11.3-10" stroke-width="0.9" />
+                      <!-- Adornos de volutas en el respaldo -->
+                      <g stroke-width="0.7">
+                        <path id="hk-voluta" d="M-7.5 -6.5C-9.6-8-9.8-11-8.1-11-7.5-11-7.5-10.3-7.5-9.7-7.5-10.3-7.5-11-6.9-11-5.2-11-5.4-8-7.5-6.5Z" />
+                        <use href="#hk-voluta" x="5" />
+                        <use href="#hk-voluta" x="10" />
+                        <use href="#hk-voluta" x="15" />
+                      </g>
+                    </g>
+                    <!-- Asiento -->
+                    <rect x="-11.5" y="-6.6" width="23" height="1.7" rx="0.6" fill="#161d3b" />
+                    <!-- Motas de luz que flotan hacia arriba -->
+                    <g fill="#f6f3fc">
+                      <circle class="hk__mota" cx="-7" cy="-15" r="0.8" />
+                      <circle class="hk__mota" cx="4" cy="-18" r="0.6" />
+                      <circle class="hk__mota" cx="-2" cy="-11" r="0.7" />
+                      <circle class="hk__mota" cx="8" cy="-14" r="0.55" />
+                      <circle class="hk__mota" cx="-12" cy="-20" r="0.6" />
+                    </g>
+                  </g>
+
+                  <!-- 6. Lluvia cercana (delante de todo) -->
+                  <g mask="url(#hk-mascara-lluvia)">
+                    <rect class="hk__lluvia" x="-110" y="-172" width="220" height="330" fill="url(#hk-gotas)" />
+                  </g>
+                </svg>
+              </span>
               <span class="planeta__nombre">Hollow Knight <span class="planeta__estado">Próximamente</span></span>
             </div>
           </li>
@@ -213,6 +485,8 @@
   </footer>
 
   <script src="js/global.js" defer></script>
+  <script src="js/titulo-silueta.js" defer></script> <!-- la forma de las letras (datos): antes que titulo.js -->
+  <script src="js/titulo.js" defer></script>
   <script src="js/orbita.js" defer></script>
   <script src="js/agujero-negro.js" defer></script>
   <script src="js/fondo-estrellas.js" defer></script>

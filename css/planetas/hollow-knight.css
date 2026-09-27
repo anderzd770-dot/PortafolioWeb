@@ -1,0 +1,107 @@
+/* =========================================================
+   PLANETA DE HOLLOW KNIGHT
+   Un mundo pequeño, frío y lluvioso: una ciudad de piedra
+   con una estatua-fuente en el polo norte y una banca con
+   farola donde descansar. El dibujo está en index.html
+   (el <svg class="planeta__arte hk">); aquí van el tamaño
+   y las animaciones.
+
+   Paleta (de stylesrefence/paleta de colores):
+   #b5a9c8 lila pálido · #8c78a6 lavanda · #4d4b72 pizarra
+   #4b2a4a ciruela · #1d1840 índigo · #161d3b noche
+   #22325b azul hondo · #4a5e88 azul acero
+   ========================================================= */
+
+/* La esfera ya no pinta nada: todo lo dibuja el SVG */
+.planeta--hollow-knight .planeta__esfera {
+  background: none;
+  box-shadow: none;
+}
+
+/* El dibujo mide 2.2 veces la esfera (viewBox de 220 para un planeta de 100),
+   así la estatua y la lluvia pueden salirse del círculo */
+.planeta--hollow-knight .planeta__arte {
+  position: absolute;
+  inset: -60%;
+  width: 220%;
+  height: 220%;
+  max-width: none; /* el reset de global.css limita los svg al 100%: aquí no */
+  overflow: visible;
+  pointer-events: none; /* el ratón solo "toca" la esfera, no la lluvia */
+}
+
+/* "Próximamente" apaga los planetas con gris; este ya es oscuro y frío
+   de por sí, así que no lo apagamos (perdería los lilas). Al pasar el
+   ratón se ilumina un poco, como al sentarse en la banca. */
+.planeta--hollow-knight[data-estado="proximamente"] .planeta__esfera {
+  filter: none;
+}
+
+.planeta--hollow-knight[data-estado="proximamente"] .planeta__enlace:hover .planeta__esfera {
+  filter: brightness(1.2);
+}
+
+/* ----- Lluvia: la ciudad donde nunca deja de llover -----
+   El rectángulo está relleno de gotas que se repiten. Lo bajamos
+   exactamente 2 "azulejos" (2 × 31 = 62) y vuelve a empezar:
+   como el dibujo es igual, no se nota el salto. */
+.hk__lluvia {
+  animation: hk-llover 0.9s linear infinite;
+}
+
+.hk__lluvia--lejos {
+  animation-name: hk-llover-lejos;
+  animation-duration: 1.7s; /* la lluvia del fondo cae más despacio */
+}
+
+@keyframes hk-llover {
+  to {
+    transform: translateY(62px);
+  }
+}
+
+@keyframes hk-llover-lejos {
+  to {
+    transform: translateY(74px); /* 2 × 37 */
+  }
+}
+
+/* ----- Motas de luz de la zona de descanso -----
+   Suben despacio y se desvanecen. Cada una empieza en un
+   momento distinto para que no se muevan todas a la vez. */
+.hk__mota {
+  opacity: 0;
+  animation: hk-flotar 6s ease-in-out infinite;
+}
+
+.hk__mota:nth-child(2) { animation-delay: -1.2s; animation-duration: 7s; }
+.hk__mota:nth-child(3) { animation-delay: -2.6s; animation-duration: 5.5s; }
+.hk__mota:nth-child(4) { animation-delay: -3.9s; animation-duration: 6.5s; }
+.hk__mota:nth-child(5) { animation-delay: -5s; animation-duration: 8s; }
+
+@keyframes hk-flotar {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  30%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(2px, -12px);
+  }
+}
+
+/* ----- Menos movimiento: lluvia quieta, motas fijas y visibles ----- */
+@media (prefers-reduced-motion: reduce) {
+  .hk__lluvia,
+  .hk__mota {
+    animation: none;
+  }
+
+  .hk__mota {
+    opacity: 0.7;
+  }
+}
