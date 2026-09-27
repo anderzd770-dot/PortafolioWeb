@@ -366,7 +366,7 @@
   z-index: 10; /* por encima de la órbita */
   top: 0.75rem;
   left: var(--margen-lateral);
-  width: min(13rem, calc(100% - 2 * var(--margen-lateral)));
+  width: min(16rem, calc(100% - 2 * var(--margen-lateral)));
   pointer-events: none;
   visibility: hidden;
 }
@@ -386,18 +386,50 @@
   height: calc(100% + var(--portal-margen) * 2);
 }
 
-/* La carta: ahora es la imagen oficial (img/CardsOfficial/Ludwig.webp), no un dibujo en CSS.
-   El marco, las esquinas y el título ya vienen dibujados en la propia imagen. */
+/* Colores propios de la carta: el cromo azulado del título y el blanco de los píxeles del disco */
 .carta {
+  --carta-cara: #070a12;
+  --carta-cromo-claro: #e6edf9;
+  --carta-cromo: #8a9ab8;
+  --carta-cromo-oscuro: #2a3350;
+  --carta-pixel: #dff6fa;
+  --carta-texto: #d6deec;
   --carta-curva: cubic-bezier(0.16, 1, 0.3, 1); /* arranca rápido y frena muy suave */
 
   position: relative;
+  padding: 2.4rem 1.4rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  /* Truco del borde de cromo: el fondo de dentro (padding-box) es la cara oscura
+     y el de fuera (border-box) es el degradado, que solo asoma por el borde transparente */
+  border: 1px solid transparent;
   border-radius: 12px;
-  overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 30%, #121a2c, var(--carta-cara) 70%) padding-box,
+    linear-gradient(160deg, var(--carta-cromo-claro), #6c7996 28%, var(--carta-cromo-oscuro) 50%,
+      #a3b3d3 72%, var(--carta-cromo-claro)) border-box;
   box-shadow:
     0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.85),
     0 0 2.5rem rgba(130, 165, 255, 0.12);
   /* Mientras se forma, el JS le va subiendo la opacidad (aparece a la vez que aterrizan los píxeles) */
+}
+
+/* Marco interior: una segunda línea más fina, con las esquinas cortadas (clip-path).
+   Los cortes los tapan los adornos de las esquinas. */
+.carta::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(163, 179, 211, 0.45);
+  border-radius: 2px;
+  clip-path: polygon(
+    12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
+    calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px
+  );
+  pointer-events: none;
 }
 
 /* Destello: una franja de luz que cruza la carta UNA vez, cuando ya está formada */
@@ -405,6 +437,7 @@
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: linear-gradient(105deg, transparent 42%, rgba(230, 240, 255, 0.16) 50%, transparent 58%)
     no-repeat;
   background-size: 250% 100%;
@@ -420,20 +453,155 @@
   to { background-position: -20% 0; } /* termina fuera, a la izquierda */
 }
 
-.carta__imagen {
-  display: block;
-  width: 100%;
-  height: auto;
-  opacity: 0;
-  transform: translateY(0.4rem);
-  transition: opacity 0.15s ease-in, transform 0.15s ease-in; /* al cerrar: rápido */
+/* El <svg> que solo guarda el dibujo del adorno: no ocupa sitio */
+.carta__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
 }
 
-.portal--abierto .carta__imagen {
+/* Adornos de las esquinas: el mismo dibujo, girado 90° en cada esquina */
+.carta__esquina {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--carta-cromo);
+  stroke-width: 1;
+}
+
+.carta__diamante {
+  fill: var(--carta-cromo-claro);
+  stroke: none;
+}
+
+.carta__esquina--1 { top: 0; left: 0; }
+.carta__esquina--2 { top: 0; right: 0; transform: rotate(90deg); }
+.carta__esquina--3 { bottom: 0; right: 0; transform: rotate(180deg); }
+.carta__esquina--4 { bottom: 0; left: 0; transform: rotate(270deg); }
+
+/* ----- Contenido: aparece en cascada cuando la carta ya casi está formada ----- */
+.carta__numero,
+.carta__arte,
+.carta__texto,
+.carta__placa {
+  opacity: 0;
+  transform: translateY(0.4rem);
+  transition: opacity 0.15s ease-in, transform 0.15s ease-in; /* al cerrar: todo a la vez, rápido */
+}
+
+.portal--abierto .carta :is(.carta__numero, .carta__arte, .carta__texto, .carta__placa) {
   opacity: 1;
   transform: none;
   transition: opacity 0.6s ease-out, transform 0.8s var(--carta-curva);
-  transition-delay: 0.6s;
+  transition-delay: calc(0.6s + var(--orden, 0) * 0.09s);
+}
+
+/* El orden de la cascada (0 = primero) */
+.carta__numero { --orden: 0; }
+.carta__arte { --orden: 1; }
+.carta__texto { --orden: 2; }
+.carta__placa { --orden: 3; }
+
+/* Medallón con el número, montado sobre el marco de arriba */
+.carta__numero {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 2.3rem;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin: -1.15rem 0 0 -1.15rem; /* centrado sobre la línea del marco */
+  border: 1px solid var(--carta-cromo);
+  border-radius: 50%;
+  background: var(--carta-cara);
+  /* Segundo aro, por dentro */
+  box-shadow: inset 0 0 0 3px var(--carta-cara), inset 0 0 0 4px rgba(163, 179, 211, 0.35);
+  color: var(--carta-cromo-claro);
+  font-family: "Grenze", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* El arte: un disco de puntos (semitono) aplastado e inclinado como el de la página,
+   con el agujero negro en el centro */
+.carta__arte {
+  position: relative;
+  width: 100%;
+  height: 3.25rem;
+  margin-bottom: 0.6rem;
+}
+
+.carta__arte::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Rejilla de puntos: un circulito repetido cada 5px */
+  background: radial-gradient(circle, var(--carta-pixel) 0 0.9px, transparent 1.3px) 0 0 / 5px 5px;
+  /* La máscara solo deja ver los puntos dentro de una elipse que se desvanece */
+  -webkit-mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 25%, transparent 75%);
+  mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 25%, transparent 75%);
+  transform: rotate(-0.16rad); /* la misma inclinación que el disco (data-giro) */
+}
+
+.carta__arte::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.5rem;
+  aspect-ratio: 1;
+  margin: -0.75rem 0 0 -0.75rem;
+  border-radius: 50%;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(223, 246, 250, 0.7), 0 0 0.75rem rgba(150, 235, 255, 0.35);
+}
+
+.carta__texto {
+  margin: 0 0 1.25rem;
+  color: var(--carta-texto);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  text-wrap: pretty; /* evita que la última línea se quede con una sola palabra */
+}
+
+/* Placa del nombre: una barra con puntas, como el título de una carta de tarot.
+   El borde de cromo es el fondo de la placa; la cara oscura (::before) queda 1px por dentro */
+.carta__placa {
+  --punta: 0.85rem;
+  position: relative;
+  width: 100%;
+  padding: 0.35rem 1.25rem 0.45rem;
+  background: linear-gradient(90deg, var(--carta-cromo-oscuro), var(--carta-cromo-claro) 50%, var(--carta-cromo-oscuro));
+  clip-path: polygon(var(--punta) 0, calc(100% - var(--punta)) 0, 100% 50%,
+    calc(100% - var(--punta)) 100%, var(--punta) 100%, 0 50%);
+  isolation: isolate; /* para que el ::before (z-index: -1) quede dentro de la placa */
+}
+
+.carta__placa::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--carta-cara);
+  clip-path: inherit;
+}
+
+.carta__nombre {
+  margin: 0;
+  color: var(--carta-cromo-claro);
+  font-family: "Grenze", Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.carta__oficio {
+  margin: 0.1rem 0 0;
+  color: var(--carta-cromo);
+  font-size: 0.68rem;
 }
 
 /* ----- Lista de mundos (versión sin JavaScript: cuadrícula) ----- */
