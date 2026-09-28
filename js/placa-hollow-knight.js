@@ -34,7 +34,7 @@
   // Recortamos solo al dibujar: los PNG originales quedan intactos.
   const RECORTE_INICIO = [0, 0, 640, 206]; // las imágenes WebP ya vienen recortadas: se usan enteras
   const RECORTE_ACTIVA = [0, 0, 640, 207];
-  const DURACION_CAMBIO = 1100; // ms que tarda la sombra en cambiar las palabras
+  const DURACION_CAMBIO = 1100; // ms que tardan las dos sombras en cruzar y cambiar las palabras
   let cambio = 0;
   let fotogramaCambio = 0;
   let anteriorCambio = 0;
@@ -71,50 +71,85 @@
     fotogramaCambio = requestAnimationFrame(animarCambio);
   }
 
-  // La segunda imagen aparece detrás de un frente ondulado de sombra.
+  // ----- El cambio de palabras: dos sombras delgadas que se cruzan -----
+  // Una entra por la izquierda y otra por la derecha, a alturas un poco distintas
+  // para cruzarse sin chocar. Detrás de cada una aparece el dibujo nuevo: cuando se
+  // cruzan en el centro ya ha cambiado entero, y siguen hasta salir por el otro lado.
+  const CAMBIO_GROSOR = 0.05;  // grosor de cada sombra, en altos de placa (¡prueba 0.1!)
+  const CAMBIO_LARGO = 0.35;   // largo de cada sombra, en anchos de placa
+  const CAMBIO_ALTURA = [0.4, 0.62]; // a qué altura pasa cada una (0 = arriba, 1 = abajo)
+
+  // Dónde está la punta de cada sombra (x en el lienzo) en este momento del cambio
+  function puntas() {
+    const s = suave(cambio);
+    return {
+      izquierda: cartaX + cartaW * (-0.05 + 1.1 * s), // va de la izquierda a la derecha
+      derecha: cartaX + cartaW * (1.05 - 1.1 * s),    // y esta al revés
+    };
+  }
+
+  // El borde del dibujo nuevo: una línea vertical que ondula un poco (tinta, no regla)
+  function ondaDelFrente(i) {
+    return Math.sin(i / 40 * 8 - cambio * 7) * cartaW * 0.012 * Math.sin(cambio * Math.PI);
+  }
+
   function pintarPlaca(destino) {
     destino.drawImage(dibujo, ...RECORTE_INICIO, cartaX, cartaY, cartaW, cartaH);
     if (!dibujoActivo.naturalWidth || cambio === 0) return;
-    const frente = cartaX + cartaW * (-0.12 + suave(cambio) * 1.24);
+    const { izquierda, derecha } = puntas();
+
+    // Zona ya cambiada: lo que queda detrás de la sombra de la izquierda
+    // MÁS lo que queda detrás de la de la derecha
+    const zona = new Path2D();
+    zona.moveTo(cartaX, cartaY);
+    for (let i = 0; i <= 40; i++) zona.lineTo(izquierda + ondaDelFrente(i), cartaY + cartaH * i / 40);
+    zona.lineTo(cartaX, cartaY + cartaH);
+    zona.closePath();
+    // La de la derecha se recorre en el MISMO sentido que la de la izquierda (las dos a
+    // favor del reloj): si fueran en sentidos contrarios, donde se solapan se anularían
+    zona.moveTo(cartaX + cartaW, cartaY);
+    zona.lineTo(cartaX + cartaW, cartaY + cartaH);
+    for (let i = 40; i >= 0; i--) zona.lineTo(derecha - ondaDelFrente(i), cartaY + cartaH * i / 40);
+    zona.closePath();
+
     destino.save();
-    destino.beginPath();
-    destino.moveTo(cartaX, cartaY);
-    for (let i = 0; i <= 40; i++) {
-      const y = cartaY + cartaH * i / 40;
-      const onda = Math.sin(i / 40 * 8 - cambio * 7) * cartaW * 0.012 * Math.sin(cambio * Math.PI);
-      destino.lineTo(frente + onda, y);
-    }
-    destino.lineTo(cartaX, cartaY + cartaH);
-    destino.closePath();
-    destino.clip();
+    destino.clip(zona);
     // Borramos el dibujo anterior en esta zona para no superponer las letras.
     destino.clearRect(cartaX, cartaY, cartaW, cartaH);
     destino.drawImage(dibujoActivo, ...RECORTE_ACTIVA, cartaX, cartaY, cartaW, cartaH);
     destino.restore();
     if (cambio >= 1) return;
-    // Un tentáculo cruza las letras: raíz ancha, cuerpo ondulado y punta fina.
-    // Sin recorte rectangular ni franja de desenfoque.
-    const izquierda = [], derecha = [];
-    const salida = suave(tramo(cambio, 0, 0.18));
-    const recogida = suave(tramo(cambio, 0.62, 1));
-    const raizX = cartaX - cartaW * 0.08 + cartaW * 1.25 * recogida;
-    const puntaX = frente + cartaW * 0.09;
-    if (puntaX <= raizX) return;
-    for (let i = 0; i <= 64; i++) {
-      const f = i / 64;
-      const x = raizX + (puntaX - raizX) * f;
-      const y = cartaY + cartaH * (0.57 + Math.sin(f * 5 - cambio * 8) * 0.08 * Math.sin(f * Math.PI));
-      const grosor = cartaH * 0.25 * Math.pow(1 - f, 0.65) * salida * (1 - recogida);
-      izquierda.push([x, y - grosor]);
-      derecha.push([x, y + grosor]);
+
+    // Las dos sombras encima: aparecen al entrar y se afinan hasta desaparecer al salir,
+    // así nunca se cortan contra el borde del lienzo
+    const fuerza = suave(tramo(cambio, 0, 0.2)) * (1 - suave(tramo(cambio, 0.8, 1)));
+    if (fuerza <= 0) return;
+    const sombras = new Path2D();
+    trazarSombraDelgada(sombras, izquierda, 1, CAMBIO_ALTURA[0], fuerza);
+    trazarSombraDelgada(sombras, derecha, -1, CAMBIO_ALTURA[1], fuerza);
+    destino.fillStyle = COLOR_SOMBRA;
+    destino.fill(sombras);
+  }
+
+  // Una sombra delgada: punta afilada delante, se ensancha un poco y la cola se deshace.
+  // sentido = 1 → va hacia la derecha; −1 → hacia la izquierda
+  function trazarSombraDelgada(camino, puntaX, sentido, altura, fuerza) {
+    const largo = cartaW * CAMBIO_LARGO;
+    const arriba = [], abajo = [];
+    for (let i = 0; i <= 48; i++) {
+      const f = i / 48;                      // 0 = cola, 1 = punta
+      const x = puntaX - sentido * largo * (1 - f);
+      // Ondula como un tentáculo; la onda viaja con el cambio
+      const y = cartaY + cartaH * (altura + 0.07 * Math.sin(f * 6 - cambio * 10 * sentido) * Math.sin(Math.PI * f));
+      // Grosor: 0 en la cola y en la punta, más ancho cerca de la punta
+      const g = cartaH * CAMBIO_GROSOR * Math.sin(Math.PI * Math.pow(f, 0.7)) * fuerza;
+      arriba.push([x, y - g]);
+      abajo.push([x, y + g]);
     }
-    const sombra = new Path2D();
-    sombra.moveTo(...izquierda[0]);
-    curvaSuave(sombra, izquierda);
-    curvaSuave(sombra, derecha.reverse());
-    sombra.closePath();
-    destino.fillStyle = "#000";
-    destino.fill(sombra);
+    camino.moveTo(...arriba[0]);
+    curvaSuave(camino, arriba);
+    curvaSuave(camino, abajo.reverse());
+    camino.closePath();
   }
   function limpiar() {
     delete barra.dataset.hkFormando;

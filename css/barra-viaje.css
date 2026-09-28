@@ -125,7 +125,7 @@
    Aparece armándose por píxeles como tu carta; al activarse saltan chispas de píxel,
    crece un poco y cambia al dibujo de "activa" (las chispas: js/placa-ludwig.js) */
 .viaje[data-tema="ludwig"] {
-  width: min(17rem, 100% - 2 * var(--margen-lateral)); /* un poco más ancha: el dibujo tiene estrellas a los lados */
+  width: min(22rem, 100% - 2 * var(--margen-lateral)); /* igual de ancha que la de Hollow Knight (css/planetas/hollow-knight.css) */
 }
 
 .viaje[data-tema="ludwig"] .viaje__placa {
