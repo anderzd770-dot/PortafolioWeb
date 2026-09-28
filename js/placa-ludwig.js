@@ -9,27 +9,41 @@
 // y pinta en el lienzo .viaje__pixeles. Mientras pinta, pone data-formando en la
 // barra para que el CSS esconda el dibujo de verdad; al terminar lo quita y se ve
 // el dibujo real (idéntico), así que el cambio no se nota.
+//
+// Y cuando el dragón se posa (data-estado = "activa"), saltan chispas de píxel
+// desde el dibujo mientras el CSS lo cambia por el de "Conocer a Ludwig".
 // =========================================================
 
 (() => {
 
 // ----- Ajustes (¡prueba a cambiarlos!) -----
 const NUM_PIXELES = 450;       // píxeles que forman la placa
-const DURACION = 1.3;          // segundos que tarda en formarse
+const DURACION = 1.6;          // segundos que tarda en formarse (igual que la carta: DURACION_ABRIR en js/carta.js)
 const VUELTAS = 1.1;           // vueltas de la espiral de cada píxel
 const REJILLA = 3;             // tamaño de la celda de píxel (igual que el disco y la carta)
 const CELDA = 3;               // tamaño (px) de los cuadraditos en los que se enciende el dibujo
 const DESTELLO = 0.75;         // cuánto brilla en blanco cada cuadradito al encenderse (0 = nada)
 const COLOR_PIXEL = "#eceef2"; // blanco plateado, como los puntos de tu dibujo
+const RADIO_SEMILLA = 12;      // tamaño (px) de la espiral pequeña que aparece primero (como en la carta)
+const BRAZOS_SEMILLA = 2.5;    // vueltas de esa espiral
 const SEMILLA = 7;             // la semilla del azar (cámbiala y la placa se forma con otro dibujo de píxeles)
 
-// El reloj de la animación (fracciones de 0 a 1), igual que en la carta
-const SALIDA_MIN = 0.04;
+// El reloj de la animación (fracciones de 0 a 1): los mismos números que la carta
+const SALIDA_MIN = 0.06;
 const SALIDA_DISTANCIA = 0.42;
-const SALIDA_AZAR = 0.06;
-const VUELO = 0.36;    // parte de la animación que dura el viaje de cada píxel
+const SALIDA_AZAR = 0.05;
+const VUELO = 0.34;    // parte de la animación que dura el viaje de cada píxel
 const VIDA = 0.1;      // después de aterrizar, lo que tarda en apagarse
-const ENCENDER = 0.12; // lo que tarda cada cuadradito del dibujo en encenderse del todo
+const ENCENDER = 0.1;  // lo que tarda cada cuadradito del dibujo en encenderse del todo
+
+// Las chispas de píxel al activarse (cuando el dragón se posa)
+const CHISPAS = 70;                 // cuántas saltan
+const CHISPAS_VELOCIDAD = [50, 170]; // px por segundo (la más lenta y la más rápida)
+const CHISPAS_VIDA = [0.5, 1.1];    // segundos que dura cada una
+const CHISPAS_SALIDA = 0.15;        // segundos durante los que van saliendo (no todas a la vez)
+const GRAVEDAD = 160;               // px/s²: cuánto caen
+const CHISPAS_ROJAS = 0.2;          // parte de chispas rojas (el resto plateadas)
+const COLOR_ROJO = "#e11e28";       // el rojo de los ojos del dragón
 
 // ----- Elementos -----
 const barra = document.querySelector(".viaje");
@@ -95,28 +109,33 @@ function medir() {
 // ----- Cada píxel: dónde aterriza y cuándo sale -----
 // La placa es alargada: la espiral se calcula "estirada" (como si la placa fuera un
 // cuadrado) y luego se aplasta a su forma. Así la espiral es un óvalo que no se sale tanto.
-function crearPixeles() {
-  const azar = crearAzar(SEMILLA);
-  // Ruleta con el mapa de brillo: cada zona tiene un trozo tan grande como su brillo al cuadrado
-  const pesos = [];
-  let total = 0;
-  for (let fila = 0; fila < BRILLO.length; fila++) {
-    for (let col = 0; col < BRILLO_COLUMNAS; col++) {
-      const b = parseInt(BRILLO[fila][col], 36) / 35;
-      total += b * b;
-      pesos.push(total);
+// Ruleta con el mapa de brillo: cada zona tiene un trozo tan grande como su brillo al cuadrado.
+// Así casi todo cae en lo claro del dibujo. Devuelve un punto (fx, fy de 0 a 1) dentro de la placa
+let pesos = null, totalPesos = 0;
+function puntoDelDibujo(azar) {
+  if (!pesos) { // se prepara la primera vez que hace falta
+    pesos = [];
+    for (let fila = 0; fila < BRILLO.length; fila++) {
+      for (let col = 0; col < BRILLO_COLUMNAS; col++) {
+        const b = parseInt(BRILLO[fila][col], 36) / 35;
+        totalPesos += b * b;
+        pesos.push(totalPesos); // pesos acumulados: el trozo de cada zona acaba en este número
+      }
     }
   }
+  const bola = azar() * totalPesos;
+  let zona = 0;
+  while (pesos[zona] < bola) zona++;
+  const col = zona % BRILLO_COLUMNAS;
+  const fila = Math.floor(zona / BRILLO_COLUMNAS);
+  return { fx: (col + azar()) / BRILLO_COLUMNAS, fy: (fila + azar()) / BRILLO.length };
+}
 
+function crearPixeles() {
+  const azar = crearAzar(SEMILLA);
   pixeles = [];
   for (let i = 0; i < NUM_PIXELES; i++) {
-    const bola = azar() * total;
-    let zona = 0;
-    while (pesos[zona] < bola) zona++;
-    const col = zona % BRILLO_COLUMNAS;
-    const fila = Math.floor(zona / BRILLO_COLUMNAS);
-    const fx = (col + azar()) / BRILLO_COLUMNAS;
-    const fy = (fila + azar()) / BRILLO.length;
+    const { fx, fy } = puntoDelDibujo(azar);
     // Destino en coordenadas "estiradas": −1 a 1 en los dos ejes
     const u = fx * 2 - 1;
     const v = fy * 2 - 1;
@@ -174,6 +193,20 @@ function dibujar(progreso) {
     const y = centroY + Math.sin(a) * r * placaH / 2;
     ponerPixel(trazado, x, y, p.luz * (1 - apagado));
   }
+
+  // La semilla: una espiral pequeña de píxeles que gira en el centro al principio
+  // y se apaga cuando la placa ya se está formando (igual que en la carta)
+  const semilla = limitar(progreso / 0.12) * (1 - limitar((progreso - 0.35) / 0.25));
+  if (semilla > 0) {
+    const puntos = 30;
+    for (let i = 0; i < puntos; i++) {
+      const t = i / puntos;                                        // 0 = centro, 1 = punta de la espiral
+      const a = t * BRAZOS_SEMILLA * Math.PI * 2 + progreso * 9;   // gira mientras crece
+      const r = t * RADIO_SEMILLA * frenar(semilla);
+      ponerPixel(trazado, centroX + Math.cos(a) * r, centroY + Math.sin(a) * r, semilla * (1 - t * 0.5));
+    }
+  }
+
   ctx.fillStyle = COLOR_PIXEL;
   ctx.globalAlpha = 1;
   ctx.fill(trazado);
@@ -271,18 +304,105 @@ function terminar() {
   ctx.clearRect(0, 0, ancho, alto);
 }
 
+// ----- Las chispas de píxel al activarse -----
+// Saltan desde el dibujo (las zonas claras) hacia fuera, caen un poco y se apagan.
+// Mientras saltan, el CSS cruza el dibujo de "Rumbo" con el de "Conocer".
+let chispas = [];
+let chispeando = false;
+let tiempoChispas = 0;
+let anteriorChispas = 0;
+
+function lanzarChispas() {
+  if (sinMovimiento.matches) return;
+  if (formando) terminar(); // si aún se estaba armando, la placa ya está entera
+  medir();
+  const azar = Math.random; // cada activación, chispas distintas
+  const entre = ([menor, mayor]) => menor + (mayor - menor) * azar();
+  chispas = [];
+  for (let i = 0; i < CHISPAS; i++) {
+    const { fx, fy } = puntoDelDibujo(azar);
+    // Hacia fuera desde el centro, medido en la forma "estirada": las de los lados salen de lado
+    const angulo = Math.atan2(fy * 2 - 1, fx * 2 - 1) + (azar() - 0.5) * 0.9;
+    const velocidad = entre(CHISPAS_VELOCIDAD);
+    chispas.push({
+      x: placaX + fx * placaW,
+      y: placaY + fy * placaH,
+      vx: Math.cos(angulo) * velocidad,
+      vy: Math.sin(angulo) * velocidad - 40, // un pequeño salto hacia arriba
+      nace: azar() * CHISPAS_SALIDA,
+      vida: entre(CHISPAS_VIDA),
+      roja: azar() < CHISPAS_ROJAS,
+    });
+  }
+  tiempoChispas = 0;
+  if (!chispeando) {
+    chispeando = true;
+    anteriorChispas = performance.now();
+    requestAnimationFrame(animarChispas);
+  }
+}
+
+function animarChispas(ahora) {
+  if (!chispeando) return; // las pararon mientras tanto
+  const segundos = Math.min(Math.max((ahora - anteriorChispas) / 1000, 0), 0.05);
+  anteriorChispas = ahora;
+  tiempoChispas += segundos;
+
+  ctx.clearRect(0, 0, ancho, alto);
+  const plata = new Path2D();
+  const rojo = new Path2D();
+  let quedan = 0;
+  for (const c of chispas) {
+    const t = tiempoChispas - c.nace; // segundos desde que saltó
+    if (t < 0) { quedan++; continue; }
+    const q = t / c.vida;             // 0 = acaba de saltar, 1 = apagada
+    if (q >= 1) continue;
+    quedan++;
+    const trazado = c.roja ? rojo : plata;
+    // Movimiento con gravedad: x = x0 + v·t ; y = y0 + v·t + ½·g·t²
+    const x = c.x + c.vx * t;
+    const y = c.y + c.vy * t + 0.5 * GRAVEDAD * t * t;
+    ponerPixel(trazado, x, y, 1 - q * q); // se encoge al final
+    // Una estela corta: dónde estaba un instante antes, más pequeña
+    const antes = Math.max(0, t - 0.04);
+    ponerPixel(trazado, c.x + c.vx * antes, c.y + c.vy * antes + 0.5 * GRAVEDAD * antes * antes, 0.5 * (1 - q));
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = COLOR_PIXEL;
+  ctx.fill(plata);
+  ctx.fillStyle = COLOR_ROJO;
+  ctx.fill(rojo);
+
+  if (quedan > 0) requestAnimationFrame(animarChispas);
+  else pararChispas();
+}
+
+function pararChispas() {
+  chispeando = false;
+  chispas = [];
+  ctx.clearRect(0, 0, ancho, alto);
+}
+
 // ----- Mirar la barra -----
 // MutationObserver avisa cada vez que cambian los atributos de la barra
+let chispasLanzadas = false; // ¿ya saltaron en esta aparición?
+
 function revisar() {
   const esLudwig = barra.dataset.tema === "ludwig";
   const estado = barra.dataset.estado;
   if (!esLudwig || estado === "oculta") {
-    // Se fue (o cambió a otro juego): se para y la próxima vez se arma de nuevo
+    // Se fue (o cambió a otro juego): se para todo y la próxima vez empieza de nuevo
     if (formando) terminar();
+    if (chispeando) pararChispas();
     formada = false;
+    chispasLanzadas = false;
     return;
   }
   if (estado === "esperando" && !formada) empezar();
+  if (estado === "activa" && !chispasLanzadas) {
+    chispasLanzadas = true;
+    lanzarChispas();
+  }
 }
 
 new MutationObserver(revisar).observe(barra, { attributes: true, attributeFilter: ["data-tema", "data-estado"] });

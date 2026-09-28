@@ -108,3 +108,67 @@
 .portal--zelda .carta::after {
   background-image: linear-gradient(105deg, transparent 40%, rgba(255, 226, 150, 0.8) 50%, transparent 60%);
 }
+
+/* =========================================================
+   LA PLACA DE LA BARRA DE VIAJE (js/barra-viaje.js + js/placa-zelda.js)
+   Tus dos dibujos de vitral (img/placas/): "Rumbo The Hero" mientras el dragón
+   viene y "Conocer The Hero" cuando se activa. Recortados a la misma caja:
+   el marco coincide y solo cambian las letras.
+   Aparece con la melodía de la carta y se activa con una lucecita (lienzo del JS).
+   ========================================================= */
+.viaje[data-tema="zelda"] {
+  width: min(22rem, 100% - 2 * var(--margen-lateral)); /* igual de ancha que las otras placas */
+}
+
+.viaje[data-tema="zelda"] .viaje__placa {
+  aspect-ratio: 640 / 172; /* la proporción de los dibujos */
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible; /* los anillos y la luz salen por fuera de la placa */
+}
+
+.viaje[data-tema="zelda"] .viaje__placa::before {
+  background: url("../../img/placas/zelda-inicio.webp") 50% 50% / 100% 100% no-repeat;
+}
+
+.viaje[data-tema="zelda"][data-estado="activa"] .viaje__placa::before {
+  background-image: url("../../img/placas/zelda-activa.webp");
+}
+
+/* Mientras el lienzo pinta (melodía o lucecita), el dibujo de verdad se esconde */
+.viaje[data-tema="zelda"][data-zelda-pintando] .viaje__placa::before {
+  visibility: hidden;
+}
+
+/* Sin brillo alrededor al activarse: los cristales ya destellan en oro */
+.viaje[data-tema="zelda"][data-estado="activa"] .viaje__placa {
+  box-shadow: none;
+}
+
+/* El texto ya está en el dibujo: se queda solo para los lectores de pantalla */
+.viaje[data-tema="zelda"] .viaje__texto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* El lienzo: más grande que la placa, porque los anillos y la luz salen por fuera */
+.viaje__vitral-zelda {
+  display: none;
+}
+
+.viaje[data-tema="zelda"] .viaje__vitral-zelda {
+  display: block;
+  position: absolute;
+  left: -35%;
+  top: -85%;
+  width: 170%;
+  height: 270%;
+}

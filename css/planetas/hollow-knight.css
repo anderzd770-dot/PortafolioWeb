@@ -97,89 +97,68 @@
   display: none;
 }
 
-/* Placa original de tinta. El SVG conserva los detalles al reducirse en móvil. */
+/* Tus dibujos «Rumbo a el Void» y «Conocer el Void», preparados a 640 × 206.
+   El lienzo y el CSS comparten tamaño para que el cambio no dé un salto. */
 .viaje[data-tema="hollow-knight"] {
-  width: min(19rem, 100% - 2 * var(--margen-lateral));
+  width: min(22rem, 100% - 2 * var(--margen-lateral));
 }
 
 .viaje[data-tema="hollow-knight"] .viaje__placa {
-  --placa-texto: #eeece6; /* marfil del rótulo VOID */
-  --placa-brillo: rgba(232, 230, 240, 0.28);
-  --hk-marco: url("../../img/placas/hollow-knight.svg");
-  aspect-ratio: 640 / 205;
+  --placa-brillo: rgba(232, 230, 240, 0.2);
+  aspect-ratio: 640 / 206;
   min-height: 0;
-  padding: 0 17%;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
   overflow: visible;
-  font-family: "Bodoni MT", Didot, "Times New Roman", serif;
-  font-size: 1.02rem;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.045em;
-  text-shadow: 0 1px 5px #000;
-  transform-origin: center bottom;
   transition: filter 0.6s ease;
 }
 
 .viaje[data-tema="hollow-knight"] .viaje__placa::before {
-  background: var(--hk-marco) center / 100% 100% no-repeat;
+  background: url("../../img/placas/hollow-knight-inicio.webp") 50% 50% / 100% 100% no-repeat; /* ya recortada: solo la parte que se ve */
+}
+
+/* El dibujo "activa" ya está recortado a la franja que se ve (sin márgenes vacíos) */
+.viaje[data-tema="hollow-knight"][data-hk-activa] .viaje__placa::before {
+  background-image: url("../../img/placas/hollow-knight-activa.webp");
+  background-size: 100% 100%;
+  background-position: 50% 50%;
 }
 
 .viaje[data-tema="hollow-knight"][data-hk-formando] .viaje__placa::before {
-  visibility: hidden; /* durante la entrada, el lienzo dibuja el mismo marco */
+  visibility: hidden; /* el lienzo dibuja la aparición y el cambio de palabras */
 }
 
+/* Los dibujos ya incluyen el texto; conservamos el mensaje accesible. */
 .viaje[data-tema="hollow-knight"] .viaje__texto {
-  clip-path: inset(0 var(--hk-revelado, 0%));
-  text-wrap: balance;
-}
-
-.viaje[data-tema="hollow-knight"][data-estado="esperando"] .viaje__texto {
-  opacity: 1;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .viaje__sombras-hk { display: none; }
-
 .viaje[data-tema="hollow-knight"] .viaje__sombras-hk {
   display: block;
   position: absolute;
-  left: -15%;
-  top: -15%;
-  width: 130%;
-  height: 130%;
+  /* Espacio para las manchas: sus bordes no chocan con el límite del lienzo. */
+  left: -35%;
+  top: -85%;
+  width: 170%;
+  height: 270%;
 }
 
-/* La luz solo recorre el dibujo: la máscara deja transparente el exterior. */
-.viaje[data-tema="hollow-knight"] .viaje__placa::after {
-  background: linear-gradient(110deg, transparent 42%, #e8e6f0aa 50%, transparent 58%)
-    0 0 / 300% 100% no-repeat;
-  mask: var(--hk-marco) center / 100% 100% no-repeat;
-  -webkit-mask: var(--hk-marco) center / 100% 100% no-repeat;
-  opacity: 0;
-}
-
+/* La activación la dibuja la sombra del JS; sin reflejos que tapen las letras. */
+.viaje[data-tema="hollow-knight"] .viaje__placa::after { display: none; }
 .viaje[data-tema="hollow-knight"][data-estado="activa"] .viaje__placa {
   box-shadow: none;
-  filter: drop-shadow(0 0 0.45rem var(--placa-brillo));
-  animation: hk-placa-alma 1s ease-out;
-}
-
-.viaje[data-tema="hollow-knight"][data-estado="activa"] .viaje__placa::after {
-  animation: hk-placa-reflejo 1.2s ease-in-out;
-}
-
-@keyframes hk-placa-alma {
-  0% { filter: drop-shadow(0 0 0 transparent); }
-  40% { filter: drop-shadow(0 0 0.8rem #e8e6f080); }
-}
-
-@keyframes hk-placa-reflejo {
-  0% { background-position: 100% 0; opacity: 0; }
-  30%, 65% { opacity: 0.5; }
-  100% { background-position: 0% 0; opacity: 0; }
+  filter: drop-shadow(0 0 0.35rem var(--placa-brillo));
 }
 
 @media (prefers-reduced-motion: reduce) {

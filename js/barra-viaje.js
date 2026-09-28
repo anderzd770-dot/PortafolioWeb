@@ -99,7 +99,7 @@ function apuntar(evento) {
   // Hollow Knight espera a su carta: ambos aparecen en el mismo instante.
   if (boton.dataset.destino === "hollow-knight" && evento.type !== "carta-abierta") return;
   clearTimeout(temporizadorSalida);
-  if (boton === actual) return;            // el mismo destino: todo sigue igual
+  if (boton === actual && estado !== "cerrando") return;
   const volando = estado === "esperando";  // el dragón ya viene hacia la placa
   esperar(boton);
   // Si el dragón ya vuela, sigue su vuelo: solo cambia la placa.
@@ -108,6 +108,7 @@ function apuntar(evento) {
 }
 
 function dejar(evento) {
+  if (evento.currentTarget.dataset.destino === "hollow-knight") return; // su carta dirige el cierre
   if (evento.pointerType === "touch") return; // con el dedo no hay "quitar el ratón": el dragón llega igual
   if (evento.currentTarget !== actual || estado !== "esperando") return; // activa: se queda
   clearTimeout(temporizadorSalida);
@@ -127,12 +128,26 @@ document.addEventListener("carta-abierta", (evento) => {
   if (boton) apuntar({ currentTarget: boton, type: "carta-abierta" });
 });
 
+// Conservamos la barra visible mientras la carta retrocede hasta cero.
+document.addEventListener("hk-progreso", (evento) => {
+  if (barra.dataset.tema !== "hollow-knight" || estado === "oculta") return;
+  if (evento.detail.abriendo) return;
+  if (evento.detail.progreso === 0) { ocultar(); return; }
+  if (estado === "cerrando") return;
+  clearTimeout(temporizadorSalida);
+  clearTimeout(temporizadorReserva);
+  quitarEnlace();
+  ponerEstado("cerrando");
+  document.dispatchEvent(new CustomEvent("dragon-despedir"));
+});
+
 // El dragón avisa cuando se ha posado bajo la placa
 document.addEventListener("dragon-posado", activar);
 
 // Escape guarda la placa. Si el foco estaba en ella, vuelve a su destino (sin reabrirla)
 document.addEventListener("keydown", (evento) => {
   if (evento.key !== "Escape" || estado === "oculta") return;
+  if (barra.dataset.tema === "hollow-knight") return; // Escape ya cierra su carta; esperamos la animación
   const volverA = document.activeElement === placa ? actual : null;
   ocultar();
   if (volverA) {
