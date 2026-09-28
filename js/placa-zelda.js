@@ -25,6 +25,7 @@ const NOTAS = 5;               // notas que suenan (cada una suelta un anillo)
 const CRISTALES = 70;          // trozos de cristal en los que se parte la placa (más o menos)
 const DESORDEN = 0.75;         // lo irregulares que son los trozos (0 = cuadrícula perfecta)
 const VIAJE_ANILLO = 1.4;      // lo que tarda un anillo en cruzar toda la placa (fracción de la animación)
+const TAMANO_ONDA = 0.5;       // hasta dónde crece cada anillo antes de apagarse (fracción del alto de la placa)
 const MOTAS = 0.15;            // parte de los cristales que sueltan una mota verde al encenderse
 const COLOR_VERDE = "110, 230, 150";   // el verde de la melodía (el mismo que la carta)
 const COLOR_LUZ = "225, 255, 235";     // el centro brillante de las notas y de la lucecita
@@ -133,8 +134,8 @@ function crearMelodia() {
     const lado = i % 2 ? 1 : -1;
     const x = lado * placaW * (0.03 + avance * 0.33 + azar() * 0.04);
     const y = (azar() - 0.5) * placaH * 0.4 * avance;
-    // Hasta dónde crece su anillo sin tocar el borde del lienzo
-    const radioMax = Math.min(ancho / 2 - Math.abs(x), alto / 2 - Math.abs(y)) - 4;
+    // Hasta dónde crece su anillo: TAMANO_ONDA, y nunca hasta tocar el borde del lienzo
+    const radioMax = Math.min(TAMANO_ONDA * placaH, ancho / 2 - Math.abs(x) - 4, alto / 2 - Math.abs(y) - 4);
     notas.push({ x, y, suena, radioMax });
   }
 
