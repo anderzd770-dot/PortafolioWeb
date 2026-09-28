@@ -129,8 +129,6 @@
 }
 
 .viaje[data-tema="ludwig"] .viaje__placa {
-  --placa-brillo: rgba(225, 30, 40, 0.55); /* el rojo de los ojos del dragón */
-
   aspect-ratio: 640 / 205; /* la proporción del dibujo "Rumbo a Ludwig" */
   min-height: 0;
   padding: 0;
@@ -140,7 +138,7 @@
   box-shadow: none;
   overflow: visible;        /* los píxeles del lienzo vuelan también por fuera de la placa */
   transform-origin: 50% 100%; /* al crecer, crece hacia arriba: no pisa al dragón */
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.6s ease; /* crece con un pequeño rebote */
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* crece con un pequeño rebote */
 }
 
 /* Los dos dibujos, uno encima del otro: "Rumbo" atrás (::before) y "Conocer" delante (::after).
@@ -199,12 +197,11 @@
   height: 260%;
 }
 
-/* Activarse: crece un poco y brilla con el rojo de los ojos del dragón.
-   (drop-shadow sigue la forma del dibujo; box-shadow haría un rectángulo) */
+/* Activarse: crece un poco. Sin brillo alrededor (Ludwig no quería el borde rojo):
+   box-shadow: none quita también el brillo que la base pone a todas las placas activas */
 .viaje[data-tema="ludwig"][data-estado="activa"] .viaje__placa {
   transform: scale(1.1);
   box-shadow: none;
-  filter: drop-shadow(0 0 0.5rem var(--placa-brillo));
 }
 
 /* ----- Con "reducir movimiento": sin animaciones, solo el cambio de estado ----- */
