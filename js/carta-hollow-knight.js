@@ -356,6 +356,7 @@ function animar(ahora) {
 }
 
 function mostrarCartaHK(abrir) {
+  clearTimeout(esperaApuntar); // una espera de foco no debe reabrirla después de cancelar
   boton.setAttribute("aria-expanded", abrir); // avisa a los lectores de pantalla
   if ((abrir ? 1 : 0) === objetivo) return;
   objetivo = abrir ? 1 : 0;
