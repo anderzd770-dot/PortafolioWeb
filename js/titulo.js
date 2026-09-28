@@ -39,6 +39,8 @@ const BRAZO_ESTRELLA = 5;        // largo de cada brazo de la cruz, en píxeles 
 const PARPADEO = 0.25;           // cuánto titila la estrella (0 = luz fija)
 const VIDA_ESTELA = 0.3;         // cuánto dura la estela detrás del cursor, en segundos (0 = sin estela)
 const SOLO_EN_LAS_LETRAS = true; // true: la luz solo se ve encima de las letras · false: la estrella entera
+const MARGEN_RATON = 12;         // px de pantalla alrededor del metal que también cuentan como "encima" de la letra
+                                 // (más = más fácil de señalar; las estrellas del fondo usan 0: la forma exacta)
 
 // ----- Ondas de luz sobre el cromo (la misma animación que el dragón del centro) -----
 // Un punto de luz en el centro del título del que salen anillos hacia fuera, que se difuminan
@@ -62,11 +64,14 @@ function corteEn(n, y) {
   return CORTES[n] + INCLINACION * (MEDIO - y);
 }
 
-// La zona de la letra n: un cuadrilátero inclinado entre sus dos cortes, de arriba abajo
+// La zona de la letra n: un cuadrilátero inclinado entre sus dos cortes, de arriba abajo.
+// Se estira SOLAPE píxeles a la derecha, por debajo de la letra siguiente: si los bordes de dos
+// recortes solo se tocan, el suavizado de cada uno deja pasar un hilo del fondo (una rayita).
+const SOLAPE = 1.5;
 function zonaDeLetra(n) {
   const puntos = [
-    [corteEn(n - 1, 0), 0], [corteEn(n, 0), 0],
-    [corteEn(n, ALTO), ALTO], [corteEn(n - 1, ALTO), ALTO],
+    [corteEn(n - 1, 0), 0], [corteEn(n, 0) + SOLAPE, 0],
+    [corteEn(n, ALTO) + SOLAPE, ALTO], [corteEn(n - 1, ALTO), ALTO],
   ];
   return puntos.map(([x, y]) => `${x.toFixed(1)},${y}`).join(" ");
 }
@@ -158,6 +163,45 @@ if (dibujo) {
     });
   }
 
+  // ----- Zona generosa para el ratón -----
+  // Para que las letras sean fáciles de señalar, el ratón cuenta como "encima" aunque esté
+  // un poco fuera del metal. Calculamos una vez, para cada celda de la rejilla:
+  //   distancia: cuántas celdas hay hasta el metal más cercano (0 = es metal)
+  //   cercana:   de qué letra es ese metal (así, entre dos letras, gana la más próxima)
+  // Se hace con dos barridos (arriba-izquierda → abajo-derecha y al revés): cada celda mira
+  // a sus vecinas ya calculadas y se queda con la distancia más corta + el paso hasta ella.
+  let distancia = null, cercana = null;
+  if (metal) {
+    const w = silueta.ancho, h = silueta.alto;
+    distancia = new Float32Array(w * h).fill(Infinity);
+    cercana = new Int8Array(w * h).fill(-1);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (!metal[y * w + x]) continue;
+        distancia[y * w + x] = 0;
+        // La letra de esta celda: cuántos cortes quedan a su izquierda (en píxeles de la imagen)
+        let n = 0;
+        while (n < CORTES.length && x * 2 > corteEn(n, y * 2)) n++;
+        cercana[y * w + x] = n;
+      }
+    }
+    const DIAGONAL = Math.SQRT2;
+    // Vecinas a mirar en cada barrido: [dx, dy, coste del paso]
+    const antes = [[-1, 0, 1], [0, -1, 1], [-1, -1, DIAGONAL], [1, -1, DIAGONAL]];
+    const despues = [[1, 0, 1], [0, 1, 1], [1, 1, DIAGONAL], [-1, 1, DIAGONAL]];
+    const mirar = (x, y, vecinas) => {
+      const i = y * w + x;
+      for (const [dx, dy, paso] of vecinas) {
+        const vx = x + dx, vy = y + dy;
+        if (vx < 0 || vx >= w || vy < 0 || vy >= h) continue;
+        const d = distancia[vy * w + vx] + paso;
+        if (d < distancia[i]) { distancia[i] = d; cercana[i] = cercana[vy * w + vx]; }
+      }
+    };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) mirar(x, y, antes);
+    for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) mirar(x, y, despues);
+  }
+
   // La imagen, en un objeto aparte: la usamos de molde para la luz del ratón
   const imagen = new Image();
   // Si la imagen no carga, volvemos a enseñar el texto normal
@@ -179,23 +223,27 @@ if (dibujo) {
     return medida;
   }
 
-  // Devuelve la letra que hay en (px, py) de la pantalla, o null
-  function letraEn(px, py) {
-    if (!metal) return null;
+  // Devuelve la letra que hay en (px, py) de la pantalla, o null.
+  // margen: cuántos píxeles de pantalla alrededor del metal cuentan también como letra
+  // (0 = solo el metal, para los choques con las estrellas; MARGEN_RATON para el ratón)
+  function letraEn(px, py, margen = 0) {
+    if (!distancia) return null;
     const { caja, matriz } = medir();
     // Descarte rápido: si está fuera del rectángulo del título, no hace falta mirar la silueta
-    if (px < caja.left || px > caja.right || py < caja.top || py > caja.bottom) return null;
+    if (px < caja.left - margen || px > caja.right + margen ||
+        py < caja.top - margen || py > caja.bottom + margen) return null;
     // Pasamos el punto de píxeles de pantalla a píxeles de la imagen
     const p = new DOMPoint(px, py).matrixTransform(matriz);
-    const x = Math.round(p.x), y = Math.round(p.y);
-    if (x < 0 || x >= ANCHO || y < 0 || y >= ALTO) return null;
     // La silueta va a media resolución: la celda es el píxel dividido entre 2
-    const celda = Math.floor(y / 2) * silueta.ancho + Math.floor(x / 2);
-    if (!metal[celda]) return null; // hueco transparente
-    // ¿Qué letra? Contamos cuántos cortes quedan a la izquierda del punto
-    let n = 0;
-    while (n < CORTES.length && x > corteEn(n, y)) n++;
-    return letras[n];
+    // (si el punto cae un poco fuera de la imagen, usamos la celda del borde más cercana)
+    const cx = Math.min(silueta.ancho - 1, Math.max(0, Math.floor(p.x / 2)));
+    const cy = Math.min(silueta.alto - 1, Math.max(0, Math.floor(p.y / 2)));
+    const celda = cy * silueta.ancho + cx;
+    // Distancia al metal en píxeles de pantalla: celdas × 2 (píxeles de imagen) × escala
+    const escala = caja.width / ANCHO;
+    const fuera = Math.hypot(Math.max(0, -p.x, p.x - ANCHO), Math.max(0, -p.y, p.y - ALTO)) * escala;
+    if (distancia[celda] * 2 * escala + fuera > margen) return null; // demasiado lejos del metal
+    return letras[cercana[celda]];
   }
 
   // ----- La letra reacciona -----
@@ -251,9 +299,10 @@ if (dibujo) {
   // Explosión en el punto (px, py) de la pantalla, con el color de la estrella.
   // fuerza (de 0 a 1): las estrellas pequeñas hacen un chispazo, las grandes una explosión
   // colores: los colores que se turnan las chispas (por defecto, el de la estrella y blanco)
-  function explotar(px, py, color, fuerza = 1, colores = [color, "#dff6fa"]) {
+  // margen: px de pantalla alrededor del metal que cuentan como letra (0 = forma exacta)
+  function explotar(px, py, color, fuerza = 1, colores = [color, "#dff6fa"], margen = 0) {
     if (sinMovimiento.matches) return;
-    const letra = letraEn(px, py);
+    const letra = letraEn(px, py, margen);
     // Solo los choques fuertes empujan la letra; los flojos solo la hacen brillar
     const golpe = fuerza > 0.5 ? new DOMPoint(px, py).matrixTransform(medir().matriz) : null;
     if (letra) reaccionar(letra, 0.3 + fuerza * 0.6, golpe);
@@ -433,9 +482,23 @@ if (dibujo) {
   if (!sinMovimiento.matches) requestAnimationFrame(animarOndas);
 
   // ----- Con el ratón -----
-  // Pasar por encima (o deslizar el dedo): una estrella de luz brilla donde apuntas.
+  // Pasar por encima (o deslizar el dedo): una estrella de luz brilla donde apuntas
+  // y la letra que tocas sobresale un poco (clase titulo__letra--encima, ver el CSS).
   // Clic: salta una chispa donde tocaste.
+  let letraEncima = null;
+
+  // Marca la letra que está bajo el cursor (o ninguna, con null)
+  function senalarLetra(letra) {
+    if (letra === letraEncima) return;
+    if (letraEncima) letraEncima.grupo.classList.remove("titulo__letra--encima");
+    if (letra) letra.grupo.classList.add("titulo__letra--encima");
+    letraEncima = letra;
+    // La mano del cursor solo sobre el metal: así se nota que la letra se puede pulsar
+    dibujo.style.cursor = letra ? "pointer" : "";
+  }
+
   function moverEstrella(evento) {
+    senalarLetra(letraEn(evento.clientX, evento.clientY, MARGEN_RATON));
     // Cada vez que el cursor avanza un píxel de la rejilla, deja un punto de estela
     const ultimo = estela[estela.length - 1];
     const seMovio = !ultimo || Math.hypot(evento.clientX - ultimo.x, evento.clientY - ultimo.y) >= CELDA;
@@ -447,15 +510,18 @@ if (dibujo) {
     estrella.encima = true;
     arrancar();
   }
-  function apagarEstrella() { estrella.encima = false; }
+  function apagarEstrella() {
+    estrella.encima = false;
+    senalarLetra(null);
+  }
 
   dibujo.addEventListener("pointermove", moverEstrella);
   dibujo.addEventListener("pointerdown", moverEstrella); // con el dedo no hay "pasar por encima"
   dibujo.addEventListener("pointerleave", apagarEstrella);
   dibujo.addEventListener("pointercancel", apagarEstrella);
   dibujo.addEventListener("click", (evento) => {
-    if (!letraEn(evento.clientX, evento.clientY)) return;
-    explotar(evento.clientX, evento.clientY, "#ffffff", 1, COLORES_CLIC);
+    if (!letraEn(evento.clientX, evento.clientY, MARGEN_RATON)) return;
+    explotar(evento.clientX, evento.clientY, "#ffffff", 1, COLORES_CLIC, MARGEN_RATON);
     // Como el dragón: un anillo de luz sale del punto del clic y recorre el título
     const punto = new DOMPoint(evento.clientX, evento.clientY).matrixTransform(medir().matriz);
     golpearLuz(punto.x, punto.y);

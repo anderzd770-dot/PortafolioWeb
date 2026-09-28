@@ -59,7 +59,7 @@ svg {
   padding: 1.25rem var(--margen-lateral);
 }
 
-/* Emblema de la cabecera (img/dragon-z.png): al pasar el ratón gira un poco y brilla más */
+/* Emblema de la cabecera (img/dragon-z.webp): al pasar el ratón gira un poco y brilla más */
 .cabecera__marca {
   display: block;
   border-radius: 50%;
@@ -122,6 +122,19 @@ svg {
 :focus-visible {
   outline: 2px solid var(--color-acento);
   outline-offset: 3px;
+}
+
+/* Texto que no se ve, pero que sí leen los lectores de pantalla */
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Si la persona pidió "reducir movimiento" en su sistema,

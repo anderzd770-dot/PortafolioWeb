@@ -96,6 +96,8 @@ function ocultar() {
 function apuntar(evento) {
   if (ignorarFoco) return;
   const boton = evento.currentTarget;
+  // Hollow Knight espera a su carta: ambos aparecen en el mismo instante.
+  if (boton.dataset.destino === "hollow-knight" && evento.type !== "carta-abierta") return;
   clearTimeout(temporizadorSalida);
   if (boton === actual) return;            // el mismo destino: todo sigue igual
   const volando = estado === "esperando";  // el dragón ya viene hacia la placa
@@ -118,6 +120,12 @@ for (const boton of destinos) {
   boton.addEventListener("pointerleave", dejar);
   boton.addEventListener("blur", dejar);
 }
+
+document.addEventListener("carta-abierta", (evento) => {
+  if (evento.detail !== "hollow-knight") return;
+  const boton = destinos.find(destino => destino.dataset.destino === "hollow-knight");
+  if (boton) apuntar({ currentTarget: boton, type: "carta-abierta" });
+});
 
 // El dragón avisa cuando se ha posado bajo la placa
 document.addEventListener("dragon-posado", activar);

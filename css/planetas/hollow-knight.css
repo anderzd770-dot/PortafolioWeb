@@ -1,107 +1,187 @@
 /* =========================================================
    PLANETA DE HOLLOW KNIGHT
-   Un mundo pequeño, frío y lluvioso: una ciudad de piedra
-   con una estatua-fuente en el polo norte y una banca con
-   farola donde descansar. El dibujo está en index.html
-   (el <svg class="planeta__arte hk">); aquí van el tamaño
-   y las animaciones.
-
-   Paleta (de stylesrefence/paleta de colores):
-   #b5a9c8 lila pálido · #8c78a6 lavanda · #4d4b72 pizarra
-   #4b2a4a ciruela · #1d1840 índigo · #161d3b noche
-   #22325b azul hondo · #4a5e88 azul acero
+   Una ciudad de piedra con su fuente sobre una esfera de ladrillo.
+   Son dos imágenes del mismo dibujo, una encima de otra
+   (originales: stylesrefence/planets/HollowknightZ.png y HollowKnightZawake.png):
+   - img/planetas/hollow-knight.webp      → "dormido" (siempre visible)
+   - img/planetas/hollow-knight-luz.webp  → "encendido" (al pasar el ratón)
+   El fondo negro de los originales se volvió transparente al convertirlos.
+   Al pasar el ratón, el planeta crece (regla general de
+   inicio.css) y la versión encendida aparece poco a poco.
    ========================================================= */
 
-/* La esfera ya no pinta nada: todo lo dibuja el SVG */
+/* La esfera no pinta nada: todo lo pone la imagen */
 .planeta--hollow-knight .planeta__esfera {
   background: none;
   box-shadow: none;
 }
 
-/* El dibujo mide 2.2 veces la esfera (viewBox de 220 para un planeta de 100),
-   así la estatua y la lluvia pueden salirse del círculo */
-.planeta--hollow-knight .planeta__arte {
-  position: absolute;
-  inset: -60%;
-  width: 220%;
-  height: 220%;
-  max-width: none; /* el reset de global.css limita los svg al 100%: aquí no */
-  overflow: visible;
-  pointer-events: none; /* el ratón solo "toca" la esfera, no la lluvia */
-}
-
 /* "Próximamente" apaga los planetas con gris; este ya es oscuro y frío
-   de por sí, así que no lo apagamos (perdería los lilas). Al pasar el
-   ratón se ilumina un poco, como al sentarse en la banca. */
-.planeta--hollow-knight[data-estado="proximamente"] .planeta__esfera {
+   de por sí, así que no lo apagamos (perdería los lilas) */
+.planeta--hollow-knight[data-estado="proximamente"] .planeta__esfera,
+.planeta--hollow-knight[data-estado="proximamente"] .planeta__enlace:hover .planeta__esfera {
   filter: none;
 }
 
-.planeta--hollow-knight[data-estado="proximamente"] .planeta__enlace:hover .planeta__esfera {
-  filter: brightness(1.2);
+/* ----- Colocar la imagen sobre la esfera -----
+   En la imagen (512 × 512 px) la esfera mide 320 px de ancho y su
+   centro está en (256, 290). Con --tamano-arte = 1 la esfera dibujada
+   mide lo mismo que el círculo de .planeta__esfera:
+   - ancho de la imagen = 512 / 320 = 1.6 veces la esfera (160%)
+   - izquierda = 50% − 256/320 = 50% − 80%
+   La ciudad tapa la mitad de arriba de la esfera, así que a tamaño 1
+   la piedra visible se ve más pequeña que los otros planetas. Por eso
+   la agrandamos: todo se multiplica por --tamano-arte.
+   Para no tapar el nombre, el fondo de la esfera dibujada se apoya en
+   el fondo del círculo (la esfera crece hacia arriba y a los lados):
+   - arriba = 100% − (0.5 + 290/320) × tamaño = 100% − 140.6% × tamaño
+   Tres tamaños en la órbita: grandes 2.03 (Elden Ring, Cyberpunk, Witcher),
+   medianos 1.83 (Zelda, Wukong) y pequeños 1.63 (este y Outer Wilds).
+   ¡Prueba a cambiarlo! (1 = igual que el círculo, 1.4 = mucho más grande) */
+.planeta--hollow-knight {
+  --tamano-arte: 1.63;
 }
 
-/* ----- Lluvia: la ciudad donde nunca deja de llover -----
-   El rectángulo está relleno de gotas que se repiten. Lo bajamos
-   exactamente 2 "azulejos" (2 × 31 = 62) y vuelve a empezar:
-   como el dibujo es igual, no se nota el salto. */
-.hk__lluvia {
-  animation: hk-llover 0.9s linear infinite;
+.planeta--hollow-knight .planeta__arte {
+  position: absolute;
+  left: calc(50% - 80% * var(--tamano-arte));
+  top: calc(100% - 140.6% * var(--tamano-arte));
+  width: calc(160% * var(--tamano-arte));
+  max-width: none; /* el reset de global.css limita las imágenes al 100%: aquí no */
+  height: auto;
+  pointer-events: none; /* el ratón solo "toca" la esfera, no el halo */
+  user-select: none;
 }
 
-.hk__lluvia--lejos {
-  animation-name: hk-llover-lejos;
-  animation-duration: 1.7s; /* la lluvia del fondo cae más despacio */
-}
-
-@keyframes hk-llover {
-  to {
-    transform: translateY(62px);
-  }
-}
-
-@keyframes hk-llover-lejos {
-  to {
-    transform: translateY(74px); /* 2 × 37 */
-  }
-}
-
-/* ----- Motas de luz de la zona de descanso -----
-   Suben despacio y se desvanecen. Cada una empieza en un
-   momento distinto para que no se muevan todas a la vez. */
-.hk__mota {
+/* ----- Encenderse al pasar el ratón -----
+   La versión con luz está encima pero transparente (opacity: 0).
+   Al pasar el ratón se vuelve opaca y un halo lila la rodea. */
+.planeta--hollow-knight .planeta__arte--luz {
   opacity: 0;
-  animation: hk-flotar 6s ease-in-out infinite;
+  transition: opacity 0.5s ease, filter 0.5s ease;
 }
 
-.hk__mota:nth-child(2) { animation-delay: -1.2s; animation-duration: 7s; }
-.hk__mota:nth-child(3) { animation-delay: -2.6s; animation-duration: 5.5s; }
-.hk__mota:nth-child(4) { animation-delay: -3.9s; animation-duration: 6.5s; }
-.hk__mota:nth-child(5) { animation-delay: -5s; animation-duration: 8s; }
-
-@keyframes hk-flotar {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0);
-  }
-  30%,
-  70% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(2px, -12px);
-  }
+.planeta--hollow-knight .planeta__enlace:hover .planeta__arte--luz,
+.planeta--hollow-knight .planeta__enlace:focus-visible .planeta__arte--luz {
+  opacity: 1;
+  /* drop-shadow sigue la forma de la imagen (no un cuadrado) */
+  filter: brightness(1.12) drop-shadow(0 0 calc(var(--tam-planeta) * 0.12) rgba(181, 169, 200, 0.55));
 }
 
-/* ----- Menos movimiento: lluvia quieta, motas fijas y visibles ----- */
+/* =========================================================
+   LA CARTA DE HOLLOW KNIGHT (js/carta-hollow-knight.js)
+   Usa las mismas clases que la carta de Ludwig (.portal, .carta),
+   así sale en el mismo sitio y con el mismo ancho. Solo cambia:
+   ========================================================= */
+/* La espiral de sombras cabe dentro de la carta (js/carta-hollow-knight.js),
+   así que basta el margen normal del lienzo (3rem) para el halo */
+.portal--hk {
+  z-index: 11; /* por encima de la carta de Ludwig si las dos se cruzan */
+  --carta-proporcion: calc(608 / 1046); /* ancho ÷ alto: con el alto común, su ancho sale solo */
+}
+
+/* Proporción de esta imagen (608 × 1046, la carta "Ø Void"): el marco es un poco más bajo que el de Ludwig */
+.portal--hk .carta {
+  aspect-ratio: 608 / 1046;
+}
+
+/* Halo pálido y sombra más negra, como las formas de tinta de la carta */
+.portal--hk .carta::before {
+  box-shadow:
+    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.95),
+    0 0 2.5rem rgba(232, 230, 240, 0.1);
+}
+
+/* Sin el destello metálico de la carta de Ludwig: esta es de tinta, no de metal */
+.portal--hk .carta::after {
+  display: none;
+}
+
+/* Placa original de tinta. El SVG conserva los detalles al reducirse en móvil. */
+.viaje[data-tema="hollow-knight"] {
+  width: min(19rem, 100% - 2 * var(--margen-lateral));
+}
+
+.viaje[data-tema="hollow-knight"] .viaje__placa {
+  --placa-texto: #eeece6; /* marfil del rótulo VOID */
+  --placa-brillo: rgba(232, 230, 240, 0.28);
+  --hk-marco: url("../../img/placas/hollow-knight.svg");
+  aspect-ratio: 640 / 205;
+  min-height: 0;
+  padding: 0 17%;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+  font-family: "Bodoni MT", Didot, "Times New Roman", serif;
+  font-size: 1.02rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  text-shadow: 0 1px 5px #000;
+  transform-origin: center bottom;
+  transition: filter 0.6s ease;
+}
+
+.viaje[data-tema="hollow-knight"] .viaje__placa::before {
+  background: var(--hk-marco) center / 100% 100% no-repeat;
+}
+
+.viaje[data-tema="hollow-knight"][data-hk-formando] .viaje__placa::before {
+  visibility: hidden; /* durante la entrada, el lienzo dibuja el mismo marco */
+}
+
+.viaje[data-tema="hollow-knight"] .viaje__texto {
+  clip-path: inset(0 var(--hk-revelado, 0%));
+  text-wrap: balance;
+}
+
+.viaje[data-tema="hollow-knight"][data-estado="esperando"] .viaje__texto {
+  opacity: 1;
+}
+
+.viaje__sombras-hk { display: none; }
+
+.viaje[data-tema="hollow-knight"] .viaje__sombras-hk {
+  display: block;
+  position: absolute;
+  left: -15%;
+  top: -15%;
+  width: 130%;
+  height: 130%;
+}
+
+/* La luz solo recorre el dibujo: la máscara deja transparente el exterior. */
+.viaje[data-tema="hollow-knight"] .viaje__placa::after {
+  background: linear-gradient(110deg, transparent 42%, #e8e6f0aa 50%, transparent 58%)
+    0 0 / 300% 100% no-repeat;
+  mask: var(--hk-marco) center / 100% 100% no-repeat;
+  -webkit-mask: var(--hk-marco) center / 100% 100% no-repeat;
+  opacity: 0;
+}
+
+.viaje[data-tema="hollow-knight"][data-estado="activa"] .viaje__placa {
+  box-shadow: none;
+  filter: drop-shadow(0 0 0.45rem var(--placa-brillo));
+  animation: hk-placa-alma 1s ease-out;
+}
+
+.viaje[data-tema="hollow-knight"][data-estado="activa"] .viaje__placa::after {
+  animation: hk-placa-reflejo 1.2s ease-in-out;
+}
+
+@keyframes hk-placa-alma {
+  0% { filter: drop-shadow(0 0 0 transparent); }
+  40% { filter: drop-shadow(0 0 0.8rem #e8e6f080); }
+}
+
+@keyframes hk-placa-reflejo {
+  0% { background-position: 100% 0; opacity: 0; }
+  30%, 65% { opacity: 0.5; }
+  100% { background-position: 0% 0; opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .hk__lluvia,
-  .hk__mota {
-    animation: none;
-  }
-
-  .hk__mota {
-    opacity: 0.7;
-  }
+  .viaje[data-tema="hollow-knight"] .viaje__placa { transition: none; }
 }

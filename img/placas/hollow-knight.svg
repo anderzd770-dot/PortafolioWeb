@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 205">
+  <!-- Marco original de tinta: curvas vegetales y piedra, sin emblemas del juego. -->
+  <defs>
+    <radialGradient id="tinta"><stop stop-color="#24232d"/><stop offset="1" stop-color="#030305"/></radialGradient>
+    <linearGradient id="hueso" x2="0" y2="1"><stop stop-color="#faf8ff"/><stop offset=".5" stop-color="#96919f"/><stop offset="1" stop-color="#e8e6f0"/></linearGradient>
+  </defs>
+  <path d="M38 50Q88 39 146 44L286 40Q312 34 320 23Q329 35 354 40L494 44Q552 39 602 50L593 102L602 153Q552 166 493 160L352 166Q329 170 320 181Q309 170 287 166L147 160Q86 166 38 153L47 102Z" fill="url(#tinta)" stroke="url(#hueso)" stroke-width="3"/>
+  <path d="M63 62Q177 54 277 55M363 55Q466 54 577 62M63 143Q180 151 277 149M363 149Q466 151 577 143" fill="none" stroke="#a5a0af" stroke-width="1.5"/>
+  <g fill="none" stroke="url(#hueso)" stroke-width="3" stroke-linecap="round">
+    <path d="M102 45C69 12 34 31 42 54C49 71 73 60 61 47C52 38 41 53 48 77L55 102C41 121 23 124 17 109C9 88 34 88 31 101M102 160C68 190 34 173 42 151C48 135 73 145 61 159C51 170 41 150 48 128"/>
+    <path d="M538 45C571 12 606 31 598 54C591 71 567 60 579 47C588 38 599 53 592 77L585 102C599 121 617 124 623 109C631 88 606 88 609 101M538 160C572 190 606 173 598 151C592 135 567 145 579 159C589 170 599 150 592 128"/>
+    <path d="M265 41C282 19 306 24 302 38C297 51 282 37 296 30M375 41C358 19 334 24 338 38C343 51 358 37 344 30M265 165C282 187 306 180 302 167C297 154 282 169 296 176M375 165C358 187 334 180 338 167C343 154 358 169 344 176"/>
+  </g>
+  <path d="M320 17L326 28L320 39L314 28ZM320 166L326 177L320 188L314 177Z" fill="#e8e6f0"/>
+</svg>
