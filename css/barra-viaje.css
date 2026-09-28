@@ -62,10 +62,39 @@
   box-shadow: var(--placa-sombra), 0 0 1.4rem var(--placa-brillo);
 }
 
-/* Solo se puede pulsar cuando está activa y tiene página */
-.viaje[data-estado="activa"] .viaje__placa[href] {
+/* Activa: recibe el ratón (para crecer al pasar por encima), pero solo se puede
+   pulsar si tiene página (entonces lleva href y la mano de enlace) */
+.viaje[data-estado="activa"] .viaje__placa {
   pointer-events: auto;
+}
+
+.viaje[data-estado="activa"] .viaje__placa[href] {
   cursor: pointer;
+}
+
+/* ----- Con el ratón encima (o con Tab): crece un poco, como los planetas y la Z-dragón -----
+   Los planetas crecen ×1.08 y la Z ×1.07; la placa es mucho más ancha, así que con ×1.04
+   ya se nota. Mismo rebote que la Z (cubic-bezier con 1.4: se pasa un pelín y vuelve).
+   Usa la propiedad "scale" (no "transform"): así se suma al scale(1.1) de la placa de Ludwig.
+   Crece desde abajo (transform-origin) para no tapar al dragón posado debajo. */
+.viaje[data-estado="activa"] .viaje__placa {
+  transform-origin: 50% 100%;
+}
+
+.viaje[data-estado="activa"] .viaje__placa:hover,
+.viaje[data-estado="activa"] .viaje__placa:focus-visible {
+  scale: 1.04;
+}
+
+/* La transición del crecer, junto a las que ya usan algunas placas (el brillo de la base,
+   el filtro de Hollow Knight y el transform de Ludwig): si no se juntan aquí, la de
+   cada placa taparía a esta. [data-tema] solo sube la prioridad del selector */
+.viaje[data-estado="activa"][data-tema] .viaje__placa {
+  transition:
+    box-shadow 0.6s ease,
+    filter 0.6s ease,
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    scale 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
 
 /* El contorno va por FUERA de la placa, sobre el fondo oscuro de la página:
@@ -211,5 +240,10 @@
   .viaje__placa::after,
   .viaje__texto {
     animation: none !important;
+  }
+
+  /* Crece igual con el ratón, pero de golpe */
+  .viaje[data-estado="activa"][data-tema] .viaje__placa {
+    transition: none;
   }
 }

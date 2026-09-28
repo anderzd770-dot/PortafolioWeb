@@ -461,6 +461,8 @@ function dibujar(progreso) {
   });
 
   document.addEventListener("hk-progreso", (evento) => {
+    // Activa: la placa ya está formada y se queda aunque la carta se cierre o se vuelva a abrir
+    if (barra.dataset.tema === "hollow-knight" && barra.dataset.estado === "activa") return;
     progreso = evento.detail.progreso;
     if (barra.dataset.tema !== "hollow-knight" || barra.dataset.estado === "oculta") return;
     if (reducir.matches) { limpiar(); activarDibujo(); return; }

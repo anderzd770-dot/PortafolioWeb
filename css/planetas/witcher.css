@@ -105,10 +105,10 @@
     0 0 2.5rem rgba(220, 60, 40, 0.16);
 }
 
-/* El destello que cruza la carta al terminar: aquí de luz dorada,
-   así brilla el oro del grabado y el negro sigue negro */
+/* El destello que cruza la carta al terminar: aquí de luz roja, como el eclipse
+   y el bosque de la carta (con "overlay" el negro sigue negro) */
 .portal--witcher .carta::after {
-  background-image: linear-gradient(105deg, transparent 40%, rgba(255, 214, 150, 0.8) 50%, transparent 60%);
+  background-image: linear-gradient(105deg, transparent 40%, rgba(255, 50, 30, 0.85) 50%, transparent 60%);
 }
 
 /* =========================================================

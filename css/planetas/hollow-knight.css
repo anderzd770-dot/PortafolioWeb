@@ -92,9 +92,10 @@
     0 0 2.5rem rgba(232, 230, 240, 0.1);
 }
 
-/* Sin el destello metálico de la carta de Ludwig: esta es de tinta, no de metal */
+/* El destello que cruza la carta al terminar: luz de plata, fría y pálida como
+   los ojos del Vacío (con "overlay" solo aclara lo claro: la tinta negra sigue negra) */
 .portal--hk .carta::after {
-  display: none;
+  background-image: linear-gradient(105deg, transparent 40%, rgba(225, 230, 245, 0.85) 50%, transparent 60%);
 }
 
 /* Tus dibujos «Rumbo a el Void» y «Conocer el Void», preparados a 640 × 206.
