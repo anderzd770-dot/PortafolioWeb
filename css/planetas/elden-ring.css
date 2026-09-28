@@ -110,9 +110,32 @@
     0 0 0.7rem rgba(214, 72, 44, 0.12);
 }
 
-/* El destello que cruza la carta al terminar: luz de oro, como las líneas del hechizo */
+/* El destello que cruza la carta al terminar: un brillo NEGRO, como el reflejo
+   en la armadura oscura del guerrero, con un filo ROJO como el de la espada
+   (el mismo rojo de la carta: 214, 72, 44). De fuera a dentro: filo gris
+   (el reflejo del metal) → rojo → negro en el centro. Con "overlay" (de inicio.css)
+   lo oscuro oscurece, el rojo tiñe los tonos medios y el gris apenas aclara. */
 .portal--elden .carta::after {
-  background-image: linear-gradient(105deg, transparent 40%, rgba(255, 214, 140, 0.8) 50%, transparent 60%);
+  background-image: linear-gradient(105deg,
+    transparent 32%,
+    rgba(170, 170, 180, 0.3) 40%,
+    rgba(214, 72, 44, 0.6) 45%,
+    rgba(0, 0, 0, 0.85) 50%,
+    rgba(214, 72, 44, 0.6) 55%,
+    rgba(170, 170, 180, 0.3) 60%,
+    transparent 68%);
+  /* Esta franja es más ancha que la de las otras cartas: con la salida normal
+     (120%) su borde se asomaba por la esquina de arriba a la izquierda antes
+     del destello. Por eso empieza más lejos (140%) y termina más lejos (−40%). */
+  background-position: 140% 0;
+}
+
+.portal--elden.portal--formada .carta::after {
+  animation-name: elden-destello; /* mismo tiempo que carta-destello (inicio.css), otro recorrido */
+}
+
+@keyframes elden-destello {
+  to { background-position: -40% 0; } /* termina fuera del todo, a la izquierda */
 }
 
 /* =========================================================
