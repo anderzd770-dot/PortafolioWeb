@@ -129,8 +129,9 @@ document.addEventListener("carta-abierta", (evento) => {
 });
 
 // Conservamos la barra visible mientras la carta retrocede hasta cero.
+// Pero si el dragón ya la activó, se queda aunque la carta se cierre (como las demás)
 document.addEventListener("hk-progreso", (evento) => {
-  if (barra.dataset.tema !== "hollow-knight" || estado === "oculta") return;
+  if (barra.dataset.tema !== "hollow-knight" || estado === "oculta" || estado === "activa") return;
   if (evento.detail.abriendo) return;
   if (evento.detail.progreso === 0) { ocultar(); return; }
   if (estado === "cerrando") return;
@@ -147,7 +148,8 @@ document.addEventListener("dragon-posado", activar);
 // Escape guarda la placa. Si el foco estaba en ella, vuelve a su destino (sin reabrirla)
 document.addEventListener("keydown", (evento) => {
   if (evento.key !== "Escape" || estado === "oculta") return;
-  if (barra.dataset.tema === "hollow-knight") return; // Escape ya cierra su carta; esperamos la animación
+  // Escape ya cierra su carta y la barra la sigue; solo si ya está activa la guardamos aquí
+  if (barra.dataset.tema === "hollow-knight" && estado !== "activa") return;
   const volverA = document.activeElement === placa ? actual : null;
   ocultar();
   if (volverA) {
