@@ -46,6 +46,11 @@
   .intro {
     margin-top: -3.5rem;
   }
+
+  /* La carta empieza a la misma altura que el título: -3.5rem de su margen + 0.25rem de su relleno */
+  .portal {
+    --carta-arriba: -3.25rem;
+  }
 }
 
 /* ----- Título de cromo: tu imagen img/titulo-anderswelt.webp, partida en letras (js/titulo.js) ----- */
@@ -106,6 +111,28 @@
   fill: #ffffff;
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* ----- Letra bajo el cursor: sobresale un poco (como los planetas, pero más sutil) -----
+   Usamos "scale" y "translate" sueltos, no "transform": transform ya lo usan la animación
+   de entrada y el retroceso del golpe, y así los tres se suman sin pisarse.
+   Crece desde su propio centro (el JS le pone transform-origin). Las medidas van en
+   píxeles de la imagen, que se ve a un tercio: -6px ≈ 2 px de pantalla hacia arriba. */
+.titulo__letra {
+  transition:
+    scale 0.3s cubic-bezier(0.2, 1.4, 0.4, 1),     /* un pequeño rebote al llegar, como al tocarla */
+    translate 0.3s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.titulo__letra--encima {
+  scale: 1.05;
+  translate: 0 -6px;
+}
+
+/* Y se aclara un poco: la capa blanca con la forma del metal se enciende apenas */
+.titulo__letra--encima .titulo__brillo {
+  opacity: 0.12;
 }
 
 /* Lienzo de las explosiones: más grande que el título para que las chispas quepan */
@@ -171,8 +198,13 @@
 .orbita {
   /* Tamaño de los planetas: mínimo 58px, ideal 8% del ancho, máximo 104px */
   --tam-planeta: clamp(58px, 8vw, 104px);
-  /* Diámetro del agujero negro: 1.7 veces un planeta. Todo lo del agujero crece con él */
-  --tam-agujero: calc(var(--tam-planeta) * 1.7);
+  /* Diámetro del agujero negro, en planetas: 1.9 = 1.9 veces un planeta. Todo lo del agujero
+     crece con él (disco, dragón, zona del ratón). Los JS también lo leen de aquí */
+  --agujero-planetas: 1.9;
+  --tam-agujero: calc(var(--tam-planeta) * var(--agujero-planetas));
+  /* Alto del dragón que vuela (js/dragon-vuelo.js) y del posado bajo la barra de viaje.
+     58px = el mismo alto que la Z-dragón del logo de arriba a la izquierda */
+  --alto-dragon-vuelo: 58px;
 
   position: relative;
   isolation: isolate; /* los z-index de dentro no se mezclan con el resto */
@@ -228,6 +260,7 @@
 @property --iman-estira { syntax: "<number>"; inherits: false; initial-value: 0; }
 @property --iman-angulo { syntax: "<angle>";  inherits: false; initial-value: 0deg; }
 @property --despertar   { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --z-encima    { syntax: "<number>"; inherits: false; initial-value: 1; }
 
 /* SVG que solo guarda la forma y el degradado: no ocupa sitio */
 .letra3d__defs {
@@ -244,22 +277,44 @@
   container-type: size; /* así los trozos pueden medir la Z con "cqw" y "cqh" (1% de su ancho/alto) */
   /* Brillo de neón suave alrededor de la Z (más fuerte al despertar). Va aquí, en la Z entera,
      y no en cada trozo: si no, cada trozo cortaría su brillo y se vería una cuadrícula de luz */
-  filter:
-    drop-shadow(0 0 2px rgba(235, 237, 242, 0.9))
-    drop-shadow(0 0 calc(8px + var(--despertar, 0) * 12px) rgba(190, 196, 210, 0.4));
+  /* Sin filo de luz alrededor: tu dibujo ya trae su propio brillo, y el filo lo emborronaba.
+     Solo un halo muy suave al despertar (pasar el ratón) */
+  filter: drop-shadow(0 0 calc(var(--despertar, 0) * 10px) rgba(190, 196, 210, calc(var(--despertar, 0) * 0.35)));
   position: absolute;
   left: 50%;
   top: 50%;
   width: 7%; /* tamaño de la Z (el cuadro es el doble de ancho que de alto) */
   aspect-ratio: 1;
-  /* El imán (lo mueve el JS): la Z se estira en la dirección en la que se mueve.
-     Para estirar en diagonal: girar, estirar y deshacer el giro */
+  /* Leyendo de derecha a izquierda (las variables --z-... las pone el JS, en medirZoom):
+     1) El imán: la Z se estira en la dirección en la que se mueve (girar, estirar y deshacer el giro)
+     2) scale(--z-crecer) + translate(--z-x, --z-y): el tamaño extra, crecido desde la esquina de
+        arriba a la izquierda del dragón (así crece hacia la derecha y hacia abajo)
+     3) Con el ratón encima, crece un poco más (--z-encima) desde el centro del dragón:
+        ir a su centro, escalar y volver */
   transform:
     translate(-50%, -50%)
+    translate(var(--z-centro-x, 0px), var(--z-centro-y, 0px))
+    scale(var(--z-encima))
+    translate(calc(var(--z-centro-x, 0px) * -1), calc(var(--z-centro-y, 0px) * -1))
+    translate(var(--z-x, 0px), var(--z-y, 0px))
+    scale(var(--z-crecer, 1))
     rotate(var(--iman-angulo, 0deg))
     scale(calc(1 + var(--iman-estira, 0)), calc(1 - var(--iman-estira, 0) * 0.5))
     rotate(calc(var(--iman-angulo, 0deg) * -1));
   perspective: calc(var(--tam-agujero) * 4); /* la "cámara", a 4 agujeros de distancia */
+  /* El crecer con el ratón: con un pequeño rebote al final, como el emblema de la cabecera */
+  transition: --z-encima 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+/* Con el ratón encima: un 7% más grande (el JS pone la clase y el número, CRECER_ENCIMA) */
+.letra3d--encima {
+  --z-encima: var(--z-encima-max, 1.07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letra3d {
+    transition: none;
+  }
 }
 
 .letra3d__cuerpo {
@@ -330,11 +385,52 @@
   fill: url(#cromo-z);
 }
 
-/* El ojo rojo de tu dibujo se enciende al despertar (pasar el ratón): un brillo rojo encima */
-.letra3d__ojo {
-  fill: #ff4a3d;
-  opacity: var(--despertar, 0);
-  filter: drop-shadow(0 0 1.5px #ff2a1f);
+/* El dragón plano: tu dibujo exactamente como es, encima del cuerpo 3D (que se esconde).
+   Se mueve con .letra3d (tamaño extra, crecer con el ratón, retroceso del clic) */
+.letra3d__plano {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: translate(var(--plano-x, 0px), var(--plano-y, 0px));
+}
+
+.agujero--plano .letra3d__plano {
+  display: block;
+}
+
+.agujero--plano .letra3d__cuerpo {
+  visibility: hidden;
+}
+
+/* Con JavaScript, el dragón se dibuja con cuadraditos en el lienzo (dibujarDragon en el JS):
+   la imagen en 3D se esconde, pero sigue ahí para medir y por si el JS no carga */
+.agujero--dragon-pixelado .letra3d__cuerpo {
+  visibility: hidden;
+}
+
+/* El dragón despierto (ojo rojo): escondido en reposo. Al apuntar con el ratón aparece
+   encima del dragón de reposo mientras crece: parece que se transforma.
+   Truco: la transición va SOLO en el estado encendido. El navegador usa la transición del estado
+   al que llega: al encenderse se funde (0.45 s) y al apagarse lo hace al instante */
+.letra3d__dibujo--despierto {
+  opacity: 0;
+  transition: none;
+}
+
+.letra3d--encima .letra3d__dibujo--despierto,
+.letra3d--ojo .letra3d__dibujo--despierto { /* --ojo: el ratón (o Tab) está sobre un planeta (lo pone el JS) */
+  opacity: 1;
+  transition: opacity 0.45s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letra3d--encima .letra3d__dibujo--despierto,
+  .letra3d--ojo .letra3d__dibujo--despierto {
+    transition: none; /* sin fundido: se enciende de golpe */
+  }
 }
 
 /* ----- Presentación que aparece sobre el agujero negro ----- */
@@ -362,11 +458,32 @@
 .portal {
   --portal-margen: 3rem; /* espacio extra del lienzo alrededor de la carta, para la espiral */
 
+  /* TODAS las cartas miden lo mismo de ALTO (el de la carta de Hollow Knight)
+     y cada una tiene el ancho que le toca según la forma de su imagen.
+     --carta-proporcion = ancho ÷ alto de la imagen; cada carta pone la suya
+     (esta, la de Ludwig: 608 × 1080; las demás en css/planetas/). */
+  --carta-proporcion: calc(608 / 1080);
+  /* El alto: 11.9rem × 1045/608 es el alto de la carta de Hollow Knight (608 × 1045)
+     cuando mide 11.9rem de ancho. min() lo reduce si la carta no cabría a lo ancho
+     (móvil) o a lo alto (ventana muy baja) */
+  --carta-alto: min(calc(11.9rem * 1045 / 608),
+    calc((100% - 2 * var(--margen-lateral)) / var(--carta-proporcion)),
+    calc(100svh - 7rem));
+  --carta-ancho: calc(var(--carta-alto) * var(--carta-proporcion));
+
+  /* En horizontal, el CENTRO de la carta (y de la espiral) va al 22% del ancho de la página */
+  --carta-centro-x: 22.25%;
+
   position: absolute;
   z-index: 10; /* por encima de la órbita */
-  top: 0.75rem;
-  left: var(--margen-lateral);
-  width: min(16rem, calc(100% - 2 * var(--margen-lateral)));
+  /* Arriba: el mismo espacio hasta el borde de la ventana que tiene el título
+     (--carta-arriba cambia con el tamaño de pantalla, igual que el título; ver abajo).
+     A los lados, clamp() hace que nunca se salga de la pantalla */
+  top: var(--carta-arriba, 0.25rem);
+  left: clamp(var(--margen-lateral),
+    calc(var(--carta-centro-x) - var(--carta-ancho) / 2),
+    calc(100% - var(--carta-ancho) - var(--margen-lateral)));
+  width: var(--carta-ancho);
   pointer-events: none;
   visibility: hidden;
 }
@@ -386,222 +503,69 @@
   height: calc(100% + var(--portal-margen) * 2);
 }
 
-/* Colores propios de la carta: el cromo azulado del título y el blanco de los píxeles del disco */
+/* La carta: tu dibujo, con la misma proporción que la imagen (608 × 1080),
+   así la caja coincide con la línea de fuera del marco de plata */
 .carta {
-  --carta-cara: #070a12;
-  --carta-cromo-claro: #e6edf9;
-  --carta-cromo: #8a9ab8;
-  --carta-cromo-oscuro: #2a3350;
-  --carta-pixel: #dff6fa;
-  --carta-texto: #d6deec;
-  --carta-curva: cubic-bezier(0.16, 1, 0.3, 1); /* arranca rápido y frena muy suave */
-
   position: relative;
-  padding: 2.4rem 1.4rem 1.3rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-
-  /* Truco del borde de cromo: el fondo de dentro (padding-box) es la cara oscura
-     y el de fuera (border-box) es el degradado, que solo asoma por el borde transparente */
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 30%, #121a2c, var(--carta-cara) 70%) padding-box,
-    linear-gradient(160deg, var(--carta-cromo-claro), #6c7996 28%, var(--carta-cromo-oscuro) 50%,
-      #a3b3d3 72%, var(--carta-cromo-claro)) border-box;
-  box-shadow:
-    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.85),
-    0 0 2.5rem rgba(130, 165, 255, 0.12);
-  /* Mientras se forma, el JS le va subiendo la opacidad (aparece a la vez que aterrizan los píxeles) */
+  aspect-ratio: 608 / 1080;
+  border-radius: 4px;
 }
 
-/* Marco interior: una segunda línea más fina, con las esquinas cortadas (clip-path).
-   Los cortes los tapan los adornos de las esquinas. */
+/* Mientras se forma, la carta la pinta js/carta.js en el lienzo (cuadradito a cuadradito).
+   Cuando termina (.portal--formada) se enseña la imagen de verdad, idéntica y más nítida */
+.carta__cara {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  visibility: hidden;
+}
+
+.portal--formada .carta__cara {
+  visibility: visible;
+}
+
+/* Sombra y halo plateado (sin azul, como el cromo del dragón): aparecen suaves al terminar */
 .carta::before {
   content: "";
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(163, 179, 211, 0.45);
-  border-radius: 2px;
-  clip-path: polygon(
-    12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px),
-    calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px
-  );
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.9),
+    0 0 2.5rem rgba(225, 228, 235, 0.12);
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
   pointer-events: none;
 }
 
-/* Destello: una franja de luz que cruza la carta UNA vez, cuando ya está formada */
+.portal--formada .carta::before {
+  opacity: 1;
+  transition: opacity 0.8s ease-out;
+}
+
+/* Destello: una franja de luz que cruza la carta UNA vez, cuando ya está formada.
+   Con "overlay" la luz solo aclara lo que ya es claro (la plata y el cromo):
+   el negro del espacio se queda negro, como un reflejo de verdad en metal */
 .carta::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(105deg, transparent 42%, rgba(230, 240, 255, 0.16) 50%, transparent 58%)
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.75) 50%, transparent 60%)
     no-repeat;
   background-size: 250% 100%;
   background-position: 120% 0; /* empieza fuera, a la derecha */
+  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
-.portal--abierto .carta::after {
-  animation: carta-destello 1.4s 1s ease-in-out both;
+.portal--formada .carta::after {
+  animation: carta-destello 1.6s 0.1s ease-in-out both;
 }
 
 @keyframes carta-destello {
   to { background-position: -20% 0; } /* termina fuera, a la izquierda */
-}
-
-/* El <svg> que solo guarda el dibujo del adorno: no ocupa sitio */
-.carta__defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-}
-
-/* Adornos de las esquinas: el mismo dibujo, girado 90° en cada esquina */
-.carta__esquina {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  fill: none;
-  stroke: var(--carta-cromo);
-  stroke-width: 1;
-}
-
-.carta__diamante {
-  fill: var(--carta-cromo-claro);
-  stroke: none;
-}
-
-.carta__esquina--1 { top: 0; left: 0; }
-.carta__esquina--2 { top: 0; right: 0; transform: rotate(90deg); }
-.carta__esquina--3 { bottom: 0; right: 0; transform: rotate(180deg); }
-.carta__esquina--4 { bottom: 0; left: 0; transform: rotate(270deg); }
-
-/* ----- Contenido: aparece en cascada cuando la carta ya casi está formada ----- */
-.carta__numero,
-.carta__arte,
-.carta__texto,
-.carta__placa {
-  opacity: 0;
-  transform: translateY(0.4rem);
-  transition: opacity 0.15s ease-in, transform 0.15s ease-in; /* al cerrar: todo a la vez, rápido */
-}
-
-.portal--abierto .carta :is(.carta__numero, .carta__arte, .carta__texto, .carta__placa) {
-  opacity: 1;
-  transform: none;
-  transition: opacity 0.6s ease-out, transform 0.8s var(--carta-curva);
-  transition-delay: calc(0.6s + var(--orden, 0) * 0.09s);
-}
-
-/* El orden de la cascada (0 = primero) */
-.carta__numero { --orden: 0; }
-.carta__arte { --orden: 1; }
-.carta__texto { --orden: 2; }
-.carta__placa { --orden: 3; }
-
-/* Medallón con el número, montado sobre el marco de arriba */
-.carta__numero {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  width: 2.3rem;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  margin: -1.15rem 0 0 -1.15rem; /* centrado sobre la línea del marco */
-  border: 1px solid var(--carta-cromo);
-  border-radius: 50%;
-  background: var(--carta-cara);
-  /* Segundo aro, por dentro */
-  box-shadow: inset 0 0 0 3px var(--carta-cara), inset 0 0 0 4px rgba(163, 179, 211, 0.35);
-  color: var(--carta-cromo-claro);
-  font-family: "Grenze", Georgia, serif;
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1;
-}
-
-/* El arte: un disco de puntos (semitono) aplastado e inclinado como el de la página,
-   con el agujero negro en el centro */
-.carta__arte {
-  position: relative;
-  width: 100%;
-  height: 3.25rem;
-  margin-bottom: 0.6rem;
-}
-
-.carta__arte::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* Rejilla de puntos: un circulito repetido cada 5px */
-  background: radial-gradient(circle, var(--carta-pixel) 0 0.9px, transparent 1.3px) 0 0 / 5px 5px;
-  /* La máscara solo deja ver los puntos dentro de una elipse que se desvanece */
-  -webkit-mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 25%, transparent 75%);
-  mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 25%, transparent 75%);
-  transform: rotate(-0.16rad); /* la misma inclinación que el disco (data-giro) */
-}
-
-.carta__arte::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1.5rem;
-  aspect-ratio: 1;
-  margin: -0.75rem 0 0 -0.75rem;
-  border-radius: 50%;
-  background: #000;
-  box-shadow: 0 0 0 1px rgba(223, 246, 250, 0.7), 0 0 0.75rem rgba(150, 235, 255, 0.35);
-}
-
-.carta__texto {
-  margin: 0 0 1.25rem;
-  color: var(--carta-texto);
-  font-size: 0.86rem;
-  line-height: 1.6;
-  text-wrap: pretty; /* evita que la última línea se quede con una sola palabra */
-}
-
-/* Placa del nombre: una barra con puntas, como el título de una carta de tarot.
-   El borde de cromo es el fondo de la placa; la cara oscura (::before) queda 1px por dentro */
-.carta__placa {
-  --punta: 0.85rem;
-  position: relative;
-  width: 100%;
-  padding: 0.35rem 1.25rem 0.45rem;
-  background: linear-gradient(90deg, var(--carta-cromo-oscuro), var(--carta-cromo-claro) 50%, var(--carta-cromo-oscuro));
-  clip-path: polygon(var(--punta) 0, calc(100% - var(--punta)) 0, 100% 50%,
-    calc(100% - var(--punta)) 100%, var(--punta) 100%, 0 50%);
-  isolation: isolate; /* para que el ::before (z-index: -1) quede dentro de la placa */
-}
-
-.carta__placa::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  z-index: -1;
-  background: var(--carta-cara);
-  clip-path: inherit;
-}
-
-.carta__nombre {
-  margin: 0;
-  color: var(--carta-cromo-claro);
-  font-family: "Grenze", Georgia, serif;
-  font-size: 1.55rem;
-  font-weight: 600;
-  line-height: 1.1;
-}
-
-.carta__oficio {
-  margin: 0.1rem 0 0;
-  color: var(--carta-cromo);
-  font-size: 0.68rem;
 }
 
 /* ----- Lista de mundos (versión sin JavaScript: cuadrícula) ----- */
@@ -615,10 +579,6 @@
   list-style: none;
 }
 
-.orbita__anillo {
-  display: none;
-}
-
 /* ----- Planeta ----- */
 .planeta__enlace {
   display: flex;
@@ -627,6 +587,15 @@
   gap: 0.6rem;
   color: inherit;
   text-decoration: none;
+}
+
+/* Algunos planetas son botones (abren su carta): les quitamos el aspecto de botón */
+button.planeta__enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-transform: inherit;
 }
 
 .planeta__enlace:focus-visible {
@@ -649,9 +618,11 @@
   transition: transform 0.35s ease, filter 0.35s ease;
 }
 
+/* Al apuntar, el planeta crece. 1.08 (como Elden Ring y Cyberpunk):
+   los dibujos ya son grandes, un salto pequeño basta para notarlo */
 .planeta__enlace:hover .planeta__esfera,
 .planeta__enlace:focus-visible .planeta__esfera {
-  transform: scale(1.15);
+  transform: scale(1.08);
 }
 
 .planeta__enlace:focus-visible .planeta__esfera {
@@ -659,29 +630,21 @@
   outline-offset: 8px;
 }
 
+/* El nombre (y "Próximamente") no se ve: los dibujos ya dicen qué mundo es.
+   Pero sigue en el HTML para los lectores de pantalla: la esfera está
+   oculta para ellos (aria-hidden), así que este texto es lo único que
+   dice a dónde lleva cada planeta. Esta es la forma estándar de
+   "ocultar a la vista pero no al lector": un recorte de 1 px. */
 .planeta__nombre {
-  width: 9rem;
-  color: var(--color-texto-suave);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  line-height: 1.3;
-  text-align: center;
-  text-transform: uppercase;
-  transition: color 0.3s;
-}
-
-.planeta__enlace:hover .planeta__nombre,
-.planeta__enlace:focus-visible .planeta__nombre {
-  color: var(--color-texto);
-}
-
-.planeta__estado {
-  display: block;
-  margin-top: 0.15rem;
-  color: var(--color-acento);
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  opacity: 0.75;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Mundos que aún no existen: más apagados */
@@ -719,61 +682,19 @@
    ambiente de cada juego (solo colores y texturas).
    ========================================================= */
 
-/* Outer Wilds: sol cálido y mar verdoso, con un anillo */
-.planeta--outer-wilds {
-  --superficie: radial-gradient(circle at 35% 30%, #ffd39a, #f08a4b 35%, #2e7d7a 70%, #123a3f);
-  --brillo: rgba(240, 138, 75, 0.35);
-}
+/* Outer Wilds: usa una imagen propia y una luna → css/planetas/outer-wilds.css */
 
-.planeta--outer-wilds .planeta__esfera::before {
-  content: "";
-  position: absolute;
-  inset: 38% -30%;
-  border: 3px solid rgba(255, 220, 170, 0.7);
-  border-top-color: transparent; /* la parte de arriba "pasa por detrás" */
-  border-radius: 50%;
-  transform: rotate(-18deg);
-}
+/* Hollow Knight: usa una imagen propia → css/planetas/hollow-knight.css */
 
-/* Hollow Knight: tiene su propio dibujo en SVG → css/planetas/hollow-knight.css */
+/* Elden Ring: usa una imagen propia → css/planetas/elden-ring.css */
 
-/* Elden Ring: oro intenso con un halo dorado */
-.planeta--elden-ring {
-  --superficie: radial-gradient(circle at 35% 30%, #fff4c7, #e0b04a 40%, #8a5f18 70%, #2e1e06);
-  --brillo: rgba(240, 190, 80, 0.55);
-}
+/* Cyberpunk 2077: usa una imagen propia → css/planetas/cyberpunk.css */
 
-/* Cyberpunk 2077: amarillo y cian con líneas de "pantalla" */
-.planeta--cyberpunk {
-  --superficie:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 5px),
-    radial-gradient(circle at 35% 30%, #f7f06d, #3fe0d0 45%, #7a2a8c 75%, #1a0f2e);
-  --brillo: rgba(63, 224, 208, 0.4);
-}
+/* The Witcher 3: usa una imagen propia → css/planetas/witcher.css */
 
-/* The Witcher 3: plateado y rojo oscuro, con cráteres */
-.planeta--witcher {
-  --superficie:
-    radial-gradient(circle at 60% 35%, rgba(0, 0, 0, 0.35) 0 7%, transparent 8%),
-    radial-gradient(circle at 40% 65%, rgba(0, 0, 0, 0.3) 0 5%, transparent 6%),
-    radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.25) 0 4%, transparent 5%),
-    radial-gradient(circle at 35% 30%, #eeeeee, #9a9a9a 35%, #7a2323 65%, #1c1111);
-  --brillo: rgba(200, 60, 60, 0.3);
-}
+/* Ocarina of Time: usa una imagen propia → css/planetas/zelda.css */
 
-/* Ocarina of Time: bosque verde y luz dorada */
-.planeta--ocarina {
-  --superficie: radial-gradient(circle at 35% 30%, #e4f7b0, #5fb85a 40%, #1f6b3a 70%, #0b2716);
-  --brillo: rgba(110, 200, 110, 0.35);
-}
-
-/* Black Myth: Wukong: piedra rojiza y nubes de fuego */
-.planeta--wukong {
-  --superficie:
-    radial-gradient(ellipse at 70% 60%, rgba(255, 200, 120, 0.35), transparent 40%),
-    radial-gradient(circle at 35% 30%, #ffd08a, #c0602d 40%, #6b2b14 70%, #240d05);
-  --brillo: rgba(220, 110, 50, 0.4);
-}
+/* Black Myth: Wukong: usa una imagen propia → css/planetas/wukong.css */
 
 /* =========================================================
    MODO ÓRBITA — se activa cuando el JavaScript añade
@@ -801,21 +722,6 @@
   pointer-events: none;
 }
 
-/* Elipse que marca el camino de la órbita */
-.orbita--viva .orbita__anillo {
-  display: block;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 1;
-  width: calc(var(--radio-x, 0px) * 2);
-  height: calc(var(--radio-y, 0px) * 2);
-  border: 1px solid var(--color-linea);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) rotate(var(--giro, 0rad)); /* torcida como el disco */
-  pointer-events: none;
-}
-
 .orbita--viva .orbita__mundos,
 .orbita--viva .orbita__lista {
   position: absolute;
@@ -827,7 +733,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  will-change: transform, opacity;
+  will-change: transform, filter; /* orbita.js los mueve (transform) y oscurece los de atrás (filter) */
 }
 
 .orbita--viva .planeta__enlace {
@@ -835,16 +741,22 @@
   cursor: inherit;
 }
 
-.orbita--viva a.planeta__enlace {
+.orbita--viva a.planeta__enlace,
+.orbita--viva button.planeta__enlace {
   cursor: pointer;
 }
 
-/* El nombre cuelga debajo de la esfera sin cambiar el tamaño del planeta */
-.orbita--viva .planeta__nombre {
+/* ----- Dragón que vuela por abajo (js/dragon-vuelo.js) ----- */
+/* Una franja pegada al fondo de la órbita, justo encima del pie.
+   Su tamaño sale de --alto-dragon-vuelo (en .orbita) */
+.dragon-vuelo {
   position: absolute;
-  top: calc(100% + 0.6rem);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(var(--alto-dragon-vuelo) * 2.4); /* sitio para las ondas y la subida */
+  z-index: 5; /* los planetas van de 10 a 90 (orbita.js): el dragón pasa por detrás */
+  pointer-events: none; /* los clics lo atraviesan */
 }
 
 /* ----- Móvil ----- */
@@ -855,11 +767,6 @@
 
   .orbita {
     min-height: 480px;
-  }
-
-  .planeta__nombre {
-    width: 7rem;
-    font-size: 0.62rem;
   }
 }
 

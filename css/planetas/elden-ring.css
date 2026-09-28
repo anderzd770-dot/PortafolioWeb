@@ -1,0 +1,116 @@
+/* =========================================================
+   PLANETA DE ELDEN RING
+   Una isla de roca con dos fortalezas góticas, una escalinata,
+   tres cascadas y un árbol gigante que brilla encima.
+   Son dos imágenes del mismo dibujo, una encima de otra
+   (originales: stylesrefence/planets/eldenringshadow.png y "elden ring planet day.png"):
+   - img/planetas/elden-ring.webp     → en sombra, flores azules (siempre visible)
+   - img/planetas/elden-ring-luz.webp → el árbol encendido de oro (al pasar el ratón)
+   El fondo negro se volvió transparente: la niebla de las cascadas se
+   queda como luz. La isla es sólida, y en la versión de sombra también
+   las ramas que están dentro del resplandor del árbol (si no, al pasar
+   por delante del agujero negro se veían sus píxeles entre las ramas).
+   La versión de oro tenía el cuenco más abajo y un poco más grande:
+   se encajó sobre la de sombra por la silueta del cuenco.
+   Al pasar el ratón, el planeta crece y el árbol se enciende.
+   ========================================================= */
+
+/* La esfera no pinta nada: todo lo pone la imagen */
+.planeta--elden-ring .planeta__esfera {
+  background: none;
+  box-shadow: none;
+}
+
+/* "Próximamente" apaga los planetas con gris; aquí perderíamos el
+   oro del árbol y el azul de las flores, así que no lo aplicamos */
+.planeta--elden-ring[data-estado="proximamente"] .planeta__esfera,
+.planeta--elden-ring[data-estado="proximamente"] .planeta__enlace:hover .planeta__esfera {
+  filter: none;
+}
+
+/* ----- Colocar la imagen sobre la esfera -----
+   Referencia: el cuenco de roca (la "isla", como en Cyberpunk).
+   En la imagen (512 × 663 px) el cuenco mide 470 px de ancho y su
+   centro está en x = 257. Con --tamano-arte = 1 el cuenco mide lo
+   mismo que el círculo de .planeta__esfera:
+   - ancho de la imagen = 512 / 470 = 1.09 veces el cuenco (108.96%)
+   - izquierda = 50% − 257/470 = 50% − 54.63%
+   Las cascadas cuelgan por debajo: para no tapar el nombre, el final
+   de la imagen (la punta de la cascada) se apoya en el fondo del círculo:
+   - arriba = 100% − 663/470 = 100% − 141.09%
+   2.03 = el mismo tamaño que Cyberpunk 2077 (su isla también mide
+   2.03 veces el círculo).
+   ¡Prueba a cambiarlo! (1.5 = como Wukong y Zelda, 1.7 = como el agujero) */
+.planeta--elden-ring {
+  --tamano-arte: 2.03;
+}
+
+.planeta--elden-ring .planeta__arte {
+  position: absolute;
+  left: calc(50% - 54.63% * var(--tamano-arte));
+  top: calc(100% - 141.09% * var(--tamano-arte));
+  width: calc(108.96% * var(--tamano-arte));
+  max-width: none; /* el reset de global.css limita las imágenes al 100%: aquí no */
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Crece menos que los otros (1.08 en vez de 1.15), igual que Cyberpunk:
+   como ya es grande, un salto pequeño basta para notarlo */
+.planeta--elden-ring .planeta__enlace:hover .planeta__esfera {
+  transform: scale(1.08);
+}
+
+/* ----- El árbol se enciende al pasar el ratón -----
+   La versión de oro está encima pero transparente (opacity: 0).
+   Al pasar el ratón se vuelve opaca y un halo dorado la rodea.
+   La de sombra se desvanece un poco más tarde: los dos dibujos no
+   coinciden al píxel (las fortalezas cambian) y así nunca se ven
+   los dos a medias a la vez. */
+.planeta--elden-ring .planeta__arte--dormido {
+  transition: opacity 0.3s ease;
+}
+
+.planeta--elden-ring .planeta__enlace:hover .planeta__arte--dormido {
+  opacity: 0;
+  transition-delay: 0.35s; /* espera a que el oro ya cubra casi todo */
+}
+
+.planeta--elden-ring .planeta__arte--luz {
+  opacity: 0;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+
+.planeta--elden-ring .planeta__enlace:hover .planeta__arte--luz {
+  opacity: 1;
+  /* drop-shadow sigue la forma del dibujo (la copa del árbol), no un cuadrado */
+  filter: drop-shadow(0 0 calc(var(--tam-planeta) * 0.1) rgba(255, 210, 120, 0.4));
+}
+
+/* =========================================================
+   LA CARTA DE ELDEN RING (js/carta-elden-ring.js)
+   Usa las mismas clases que la carta de Ludwig (.portal, .carta),
+   así sale en el mismo sitio y con el mismo alto. Solo cambia:
+   ========================================================= */
+.portal--elden {
+  z-index: 17; /* por encima de las otras cartas si se cruzan */
+  --carta-proporcion: calc(608 / 1009); /* ancho ÷ alto de la imagen: con el alto común, su ancho sale solo */
+}
+
+.portal--elden .carta {
+  aspect-ratio: 608 / 1009;
+}
+
+/* Sombra negra, un halo de oro (el hechizo) y un poco de rojo (las llamas de la carta) */
+.portal--elden .carta::before {
+  box-shadow:
+    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.95),
+    0 0 2.4rem rgba(255, 196, 104, 0.14),
+    0 0 0.7rem rgba(214, 72, 44, 0.12);
+}
+
+/* El destello que cruza la carta al terminar: luz de oro, como las líneas del hechizo */
+.portal--elden .carta::after {
+  background-image: linear-gradient(105deg, transparent 40%, rgba(255, 214, 140, 0.8) 50%, transparent 60%);
+}

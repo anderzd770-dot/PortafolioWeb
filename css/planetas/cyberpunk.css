@@ -1,0 +1,219 @@
+/* =========================================================
+   PLANETA DE CYBERPUNK 2077
+   Una ciudad de neón sobre una isla flotante: rascacielos con
+   pantallas, una autopista roja en espiral y, debajo, un cuenco oscuro
+   del que cuelgan circuitos de luz.
+   Son dos imágenes del mismo dibujo, una encima de otra
+   (originales: stylesrefence/planets/Cyberpunk2z7.png y "Cyberpunk 2z77 glitch.png"):
+   - img/planetas/cyberpunk.webp        → la ciudad normal (siempre visible)
+   - img/planetas/cyberpunk-glitch.webp → la ciudad "glitcheada" (al pasar el ratón)
+   La versión glitch no coincidía al píxel con la normal: al
+   convertirla se encajó encima de la normal, así el cambio no salta.
+   El fondo negro se volvió transparente (los puntos rojos que cuelgan
+   se quedan como luz).
+   Al pasar el ratón el planeta crece, aparece la versión glitch y unas
+   franjas del dibujo saltan de lado un instante, como una señal que falla.
+   ========================================================= */
+
+/* La esfera no pinta nada: todo lo pone la imagen */
+.planeta--cyberpunk .planeta__esfera {
+  background: none;
+  box-shadow: none;
+}
+
+/* "Próximamente" apaga los planetas con gris; aquí perderíamos todo
+   el neón, así que no lo aplicamos */
+.planeta--cyberpunk[data-estado="proximamente"] .planeta__esfera,
+.planeta--cyberpunk[data-estado="proximamente"] .planeta__enlace:hover .planeta__esfera {
+  filter: none;
+}
+
+/* ----- Colocar la imagen sobre la esfera -----
+   La imagen recortada mide 1212 × 1259 px del original; la isla (su
+   borde más ancho) mide 1045 px y su centro está en x = 606.5.
+   Con --tamano-arte = 1 la isla mide lo mismo que el círculo de .planeta__esfera:
+   - ancho de la imagen = 1212 / 1045 = 1.16 veces la esfera (116%)
+   - izquierda = 50% − 606.5/1045 = 50% − 58%
+   Para no tapar el nombre, el borde de abajo de la imagen (el final
+   del circuito que cuelga) se apoya en el fondo del círculo:
+   - arriba = 100% − 1259/1045 = 100% − 120.5%
+   2.2 = un poco más grande que antes (2.03), a petición de Ludwig.
+   Ahora es más ancho que el agujero negro (1.7 veces un planeta).
+   ¡Prueba a cambiarlo! (1.44 = igual que Hollow Knight, 1.7 = como el agujero) */
+.planeta--cyberpunk {
+  --tamano-arte: 2.2;
+}
+
+.planeta--cyberpunk .planeta__arte {
+  position: absolute;
+  left: calc(50% - 58% * var(--tamano-arte));
+  top: calc(100% - 120.5% * var(--tamano-arte));
+  width: calc(116% * var(--tamano-arte));
+  max-width: none; /* el reset de global.css limita las imágenes al 100%: aquí no */
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Crece menos que los otros (1.08 en vez de 1.15): como ya es
+   más grande, un salto pequeño basta para notarlo */
+.planeta--cyberpunk .planeta__enlace:hover .planeta__esfera,
+.planeta--cyberpunk .planeta__enlace:focus-visible .planeta__esfera {
+  transform: scale(1.08);
+}
+
+/* ----- Glitch al pasar el ratón ----- */
+
+/* La normal se desvanece un poco más tarde: los dos dibujos no
+   coinciden al píxel y así nunca se ven los dos a medias */
+.planeta--cyberpunk .planeta__arte--dormido {
+  transition: opacity 0.25s ease;
+}
+
+.planeta--cyberpunk .planeta__enlace:hover .planeta__arte--dormido {
+  opacity: 0;
+  transition-delay: 0.2s;
+}
+
+/* La versión glitch está encima pero transparente (opacity: 0) */
+.planeta--cyberpunk .planeta__arte--luz {
+  opacity: 0;
+  transition: opacity 0.3s steps(3, end); /* aparece a saltos, no suave */
+}
+
+.planeta--cyberpunk .planeta__enlace:hover .planeta__arte--luz {
+  opacity: 1;
+  /* Halo magenta que sigue la forma de la ciudad */
+  filter: drop-shadow(0 0 calc(var(--tam-planeta) * 0.1) rgba(255, 40, 160, 0.45));
+  /* Al entrar: dos o tres sacudidas con los colores separados */
+  animation: cyber-sacudida 0.35s steps(1, end);
+}
+
+/* Dos franjas del dibujo glitch que saltan de lado. Casi todo el tiempo
+   están ocultas; cada 3.4 s aparecen un instante (el 8% del ciclo). */
+.planeta--cyberpunk .planeta__arte--corte {
+  opacity: 0;
+}
+
+.planeta--cyberpunk .planeta__enlace:hover .planeta__arte--corte-a {
+  animation: cyber-corte-a 3.4s steps(1, end) infinite;
+}
+
+.planeta--cyberpunk .planeta__enlace:hover .planeta__arte--corte-b {
+  animation: cyber-corte-b 3.4s steps(1, end) infinite;
+  animation-delay: 0.08s; /* un pelín después de la otra */
+}
+
+/* Separar los colores: una copia cian a un lado y una roja al otro.
+   --rgb es la distancia de separación */
+.planeta--cyberpunk {
+  --rgb: calc(var(--tam-planeta) * 0.025);
+}
+
+@keyframes cyber-sacudida {
+  0% {
+    transform: translateX(2.5%);
+    filter: drop-shadow(var(--rgb) 0 0 rgba(0, 240, 255, 0.7)) drop-shadow(calc(var(--rgb) * -1) 0 0 rgba(255, 0, 80, 0.7));
+  }
+  30% {
+    transform: translateX(-1.5%);
+  }
+  60% {
+    transform: translateX(0.8%);
+    filter: drop-shadow(calc(var(--rgb) * -0.6) 0 0 rgba(0, 240, 255, 0.6)) drop-shadow(calc(var(--rgb) * 0.6) 0 0 rgba(255, 0, 80, 0.6));
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* clip-path: inset(arriba 0 abajo 0) deja ver solo una franja horizontal */
+@keyframes cyber-corte-a {
+  0% {
+    opacity: 1;
+    clip-path: inset(24% 0 70% 0);
+    transform: translateX(-4%);
+  }
+  3% {
+    clip-path: inset(46% 0 49% 0);
+    transform: translateX(3%);
+  }
+  6% {
+    clip-path: inset(12% 0 84% 0);
+    transform: translateX(-2%);
+  }
+  8%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes cyber-corte-b {
+  0% {
+    opacity: 1;
+    clip-path: inset(58% 0 38% 0);
+    transform: translateX(3%);
+    filter: drop-shadow(var(--rgb) 0 0 rgba(0, 240, 255, 0.6));
+  }
+  4% {
+    clip-path: inset(33% 0 63% 0);
+    transform: translateX(-3%);
+    filter: drop-shadow(calc(var(--rgb) * -1) 0 0 rgba(255, 0, 80, 0.6));
+  }
+  7%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Si la persona pide menos movimiento: sin sacudidas ni franjas,
+   solo el cambio de una imagen a la otra */
+@media (prefers-reduced-motion: reduce) {
+  .planeta--cyberpunk .planeta__enlace:hover .planeta__arte--luz,
+  .planeta--cyberpunk .planeta__enlace:hover .planeta__arte--corte {
+    animation: none;
+  }
+}
+
+/* =========================================================
+   LA CARTA DE CYBERPUNK 2077 (js/carta-cyberpunk.js)
+   Usa las mismas clases que la carta de Ludwig (.portal, .carta),
+   así sale en el mismo sitio y con el mismo ancho. Solo cambia:
+   ========================================================= */
+.portal--cyberpunk {
+  z-index: 13; /* por encima de las otras cartas si se cruzan */
+  --carta-proporcion: calc(608 / 865); /* ancho ÷ alto: mismo alto que las otras, así que sale más ancha */
+}
+
+/* Proporción de esta imagen (608 × 865): es más ancha que la de Ludwig */
+.portal--cyberpunk .carta {
+  aspect-ratio: 608 / 865;
+}
+
+/* Sombra negra y un halo de neón muy suave (magenta y verde, los colores de la carta) */
+.portal--cyberpunk .carta::before {
+  box-shadow:
+    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.95),
+    0 0 2.2rem rgba(226, 60, 255, 0.16),
+    0 0 0.6rem rgba(125, 255, 90, 0.1);
+}
+
+/* En vez del destello en diagonal: una línea de neón verde que baja
+   una vez por la carta, como el barrido de una pantalla.
+   La imagen de fondo mide 2.5 veces la carta y la línea está en su mitad:
+   al mover la posición del 90% al 10%, la línea pasa de arriba a abajo. */
+.portal--cyberpunk .carta::after {
+  background-image: linear-gradient(to bottom,
+    transparent 47%, rgba(125, 255, 90, 0.5) 50%, transparent 53%);
+  background-size: 100% 250%;
+  background-position: 0 90%;
+  mix-blend-mode: screen; /* suma luz: el negro no cambia, el neón brilla un poco más */
+}
+
+.portal--cyberpunk.portal--formada .carta::after {
+  animation: cyber-barrido 0.9s 0.05s ease-in-out both;
+}
+
+@keyframes cyber-barrido {
+  to { background-position: 0 10%; }
+}

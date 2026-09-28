@@ -1,0 +1,222 @@
+/* =========================================================
+   BARRA DE VIAJE (js/barra-viaje.js)
+   La "placa del nombre" de la carta de tarot, abajo a la derecha de la órbita,
+   con tu dragón posado debajo como pedestal.
+   - data-estado: oculta → esperando ("Rumbo a…") → activa ("Viajar a…")
+   - data-tema: el destino. Aquí va la base y la placa de Ludwig;
+     la de cada juego va al final de css/planetas/<juego>.css
+   Cada placa cambia unas variables (--placa-…) y pone dos animaciones:
+   una al aparecer (esperando) y otra al activarse (activa).
+   REGLA: el aspecto final va en la regla normal y los @keyframes solo dicen
+   de dónde viene. Así, sin animaciones (reducir movimiento), se ve completa.
+   ========================================================= */
+
+.viaje {
+  position: absolute;
+  right: var(--margen-lateral);
+  bottom: 0.5rem;
+  z-index: 95; /* los planetas van de 10 a 90 (orbita.js): la placa va encima para recibir el clic */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem; /* hueco entre la placa y el lomo del dragón */
+  width: min(15rem, 100% - 2 * var(--margen-lateral));
+  pointer-events: none; /* solo la placa activa con página recibe el ratón */
+}
+
+.viaje[data-estado="oculta"] {
+  visibility: hidden;
+}
+
+/* ----- La placa ----- */
+.viaje__placa {
+  /* Lo que cambia cada juego */
+  --placa-fondo: #16161e;
+  --placa-borde: rgba(255, 255, 255, 0.35);
+  --placa-texto: var(--color-texto);
+  --placa-sombra: 0 0 #0000;                 /* sombra fija propia (p. ej. la magenta de Cyberpunk) */
+  --placa-brillo: rgba(255, 255, 255, 0.3);  /* el brillo que se queda al activarse */
+
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--placa-borde);
+  border-radius: 3px;
+  background: var(--placa-fondo);
+  box-shadow: var(--placa-sombra);
+  color: var(--placa-texto);
+  font-family: "Grenze", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  overflow: hidden; /* los efectos de dentro no se salen de la placa */
+  transition: box-shadow 0.6s ease;
+}
+
+.viaje[data-estado="activa"] .viaje__placa {
+  box-shadow: var(--placa-sombra), 0 0 1.4rem var(--placa-brillo);
+}
+
+/* Solo se puede pulsar cuando está activa y tiene página */
+.viaje[data-estado="activa"] .viaje__placa[href] {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* El contorno va por FUERA de la placa, sobre el fondo oscuro de la página:
+   por eso usa el texto claro de la página y no el de la placa (el de Ludwig es casi negro) */
+.viaje__placa:focus-visible {
+  outline: 2px solid var(--color-texto);
+  outline-offset: 3px;
+}
+
+/* Capas de dentro, de atrás a delante: textura (::before), lienzo propio, texto, efecto (::after) */
+.viaje__placa::before,
+.viaje__placa::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.viaje__lienzo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* hueco para un lienzo propio si algún juego lo necesita más adelante */
+}
+
+.viaje__texto {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.viaje__placa::after {
+  z-index: 2;
+}
+
+/* Mientras el dragón viene, el texto está algo apagado: aún no se puede pulsar */
+.viaje[data-estado="esperando"] .viaje__texto {
+  opacity: 0.6;
+}
+
+/* ----- El dragón posado (tu dibujo quieto) ----- */
+.viaje__dragon {
+  display: block;
+  width: auto;
+  max-width: none; /* global.css pone max-width: 100% a las imágenes */
+  height: var(--alto-dragon-vuelo);
+  opacity: 0;
+  transition: opacity 0.15s linear; /* igual que FUNDIDO_POSARSE en js/dragon-vuelo.js */
+}
+
+.viaje[data-estado="activa"] .viaje__dragon {
+  opacity: 1;
+}
+
+/* ----- Placa de Ludwig (la Z-dragón): TU DIBUJO (img/placas/ludwig.webp) -----
+   El dibujo ya lleva el texto y el marco, así que aquí la placa no tiene fondo ni borde.
+   Aparece armándose por píxeles como tu carta (js/placa-ludwig.js). Al activarse crece
+   un poco y un reflejo de cromo la recorre.
+   (De momento la placa activa usa el mismo dibujo: cuando tengas el de "activa", va aquí) */
+.viaje[data-tema="ludwig"] {
+  width: min(17rem, 100% - 2 * var(--margen-lateral)); /* un poco más ancha: el dibujo tiene estrellas a los lados */
+}
+
+.viaje[data-tema="ludwig"] .viaje__placa {
+  --placa-brillo: rgba(225, 30, 40, 0.55); /* el rojo de los ojos del dragón */
+  --dibujo-placa: url("../img/placas/ludwig.webp");
+
+  aspect-ratio: 640 / 205; /* la proporción del dibujo */
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;        /* los píxeles del lienzo vuelan también por fuera de la placa */
+  transform-origin: 50% 100%; /* al crecer, crece hacia arriba: no pisa al dragón */
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.6s ease; /* crece con un pequeño rebote */
+}
+
+/* El dibujo va en la capa de atrás (::before) */
+.viaje[data-tema="ludwig"] .viaje__placa::before {
+  background: var(--dibujo-placa) center / 100% 100% no-repeat;
+}
+
+/* Mientras los píxeles la arman, el dibujo lo pinta el lienzo (js/placa-ludwig.js) */
+.viaje[data-tema="ludwig"][data-formando] .viaje__placa::before {
+  visibility: hidden;
+}
+
+/* El texto ya está en el dibujo: se queda solo para los lectores de pantalla */
+.viaje[data-tema="ludwig"] .viaje__texto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* El lienzo de los píxeles: más grande que la placa, porque la espiral sale por fuera */
+.viaje__pixeles {
+  display: none;
+}
+
+.viaje[data-tema="ludwig"] .viaje__pixeles {
+  display: block;
+  position: absolute;
+  left: -22%;
+  top: -22%;
+  width: 144%;
+  height: 144%;
+}
+
+/* Activarse: crece un poco y brilla con el rojo de los ojos del dragón.
+   (drop-shadow sigue la forma del dibujo; box-shadow haría un rectángulo) */
+.viaje[data-tema="ludwig"][data-estado="activa"] .viaje__placa {
+  transform: scale(1.1);
+  box-shadow: none;
+  filter: drop-shadow(0 0 0.5rem var(--placa-brillo));
+}
+
+/* El reflejo de cromo: dos franjas de luz que cruzan el dibujo.
+   La máscara es el propio dibujo: así la luz solo toca el metal, no el aire de alrededor */
+.viaje[data-tema="ludwig"] .viaje__placa::after {
+  /* El degradado mide 3 placas de ancho y las franjas van en su centro:
+     con background-position 100% quedan fuera por la izquierda y con 0% fuera por la derecha */
+  background: linear-gradient(105deg,
+      transparent 44%,
+      rgba(255, 255, 255, 0.9) 48%, transparent 51%,  /* franja ancha */
+      rgba(210, 225, 255, 0.8) 54%, transparent 56%,  /* franja fina, algo azulada como el cromo */
+      transparent 100%)
+    0 0 / 300% 100% no-repeat;
+  background-position: 0% 0; /* al final, las franjas se han ido por la derecha */
+  mix-blend-mode: screen;      /* aclara el metal oscuro, sin tapar el dibujo */
+  -webkit-mask: var(--dibujo-placa) center / 100% 100% no-repeat;
+  mask: var(--dibujo-placa) center / 100% 100% no-repeat;
+}
+
+.viaje[data-tema="ludwig"][data-estado="activa"] .viaje__placa::after {
+  animation: ludwig-cromo 1.4s ease-in-out 0.15s both;
+}
+
+@keyframes ludwig-cromo {
+  from { background-position: 100% 0; } /* empiezan fuera, por la izquierda */
+}
+
+/* ----- Con "reducir movimiento": sin animaciones, solo el cambio de estado ----- */
+@media (prefers-reduced-motion: reduce) {
+  .viaje__placa,
+  .viaje__placa::before,
+  .viaje__placa::after,
+  .viaje__texto {
+    animation: none !important;
+  }
+}

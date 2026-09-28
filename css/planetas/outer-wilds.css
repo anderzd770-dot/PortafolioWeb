@@ -1,0 +1,209 @@
+/* =========================================================
+   PLANETA DE OUTER WILDS
+   Un planeta pequeño con bosque, una hoguera y una nave,
+   y una luna llena de cráteres que le da la vuelta.
+   (originales: stylesrefence/planets/outerwildsalone.png y "Outerwilds Moon.png")
+   - img/planetas/outer-wilds.webp      → el planeta, sin halo (siempre visible)
+   - img/planetas/outer-wilds-luna.webp → la luna (aparece al pasar el ratón)
+   El fondo negro se volvió transparente al convertirlos (el halo
+   azul de la luna se queda como luz).
+   Al pasar el ratón, el planeta crece (regla general de
+   inicio.css) y la luna aparece poco a poco y empieza a girar.
+   ========================================================= */
+
+/* ¡Prueba a cambiarlos! */
+.planeta--outer-wilds {
+  --tamano-arte: 1.63;  /* esfera dibujada ÷ círculo del planeta (1 = igual); de los pequeños, como Hollow Knight */
+  /* La luna y su órbita cambian en la misma proporción que el planeta
+     (con el planeta a 1.25 eran 0.34 y 1.1; ahora ×1.3) */
+  --tamano-luna: 0.44;  /* luna ÷ círculo del planeta */
+  /* Ancho de la órbita de la luna ÷ círculo del planeta. La luna cambia de
+     "delante" a "detrás" en los extremos: ahí tiene que estar ya fuera del
+     dibujo del planeta o se ve el corte. El planeta (con sus rocas) llega
+     a ~0.90 + medio ancho de la luna (0.27) = 1.17 como mínimo */
+  --radio-luna: 1.43;
+  --aplastado: 0.3;     /* alto ÷ ancho de la órbita (1 = círculo, 0 = una raya) */
+  --vuelta-luna: 14s;   /* tiempo que tarda en dar una vuelta */
+}
+
+/* La esfera no pinta nada: todo lo ponen las imágenes */
+.planeta--outer-wilds .planeta__esfera {
+  background: none;
+  box-shadow: none;
+}
+
+/* El anillo dibujado con CSS de antes ya no hace falta */
+.planeta--outer-wilds .planeta__esfera::before {
+  display: none;
+}
+
+/* ----- Colocar el planeta sobre la esfera -----
+   En la imagen (512 × 593 px) la esfera mide 403 px de ancho y su
+   centro está en (256, 345). Con --tamano-arte = 1 la esfera dibujada
+   mide lo mismo que el círculo de .planeta__esfera:
+   - ancho de la imagen = 512 / 403 = 1.271 veces la esfera (127.1%)
+   - izquierda = 50% − 256/403 = 50% − 63.5%
+   Para no tapar el nombre, el fondo de la esfera se apoya en el
+   fondo del círculo (crece hacia arriba y a los lados):
+   - arriba = 100% − (345 + 201)/403 = 100% − 135.7% */
+.planeta--outer-wilds .planeta__arte {
+  position: absolute;
+  z-index: 2; /* la luna pasa por delante (3) o por detrás (1) */
+  left: calc(50% - 63.5% * var(--tamano-arte));
+  top: calc(100% - 135.7% * var(--tamano-arte));
+  width: calc(127.1% * var(--tamano-arte));
+  max-width: none; /* el reset de global.css limita las imágenes al 100%: aquí no */
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.5s ease;
+}
+
+/* Al pasar el ratón, un halo azul como el del dibujo */
+.planeta--outer-wilds .planeta__enlace:hover .planeta__arte,
+.planeta--outer-wilds .planeta__enlace:focus-visible .planeta__arte {
+  filter: brightness(1.08) drop-shadow(0 0 calc(var(--tam-planeta) * 0.12) rgba(90, 170, 255, 0.45));
+}
+
+/* Sin el latido naranja de "mundo activo" (inicio.css): con el dibujo no hace falta.
+   El selector copia el de inicio.css (misma especificidad) y, como este archivo
+   se carga después, gana él */
+.planeta--outer-wilds[data-estado="activo"] .planeta__esfera::after {
+  display: none;
+}
+
+/* =========================================================
+   LA LUNA
+   Truco: una vuelta vista de lado es una elipse. Una elipse es
+   ir de izquierda a derecha y de arriba abajo a la vez, pero
+   desfasados un cuarto de vuelta (cuando está en un extremo por
+   los lados, está a media altura; y al revés).
+   Por eso cada movimiento va en una capa distinta:
+   - .luna        → delante o detrás del planeta (z-index)
+   - .luna__lado  → izquierda ↔ derecha y arriba ↕ abajo
+   - .luna__arte  → más grande delante, más pequeña detrás
+   Cuando está abajo (más cerca de nosotros) pasa por DELANTE;
+   cuando está arriba (lejos) pasa por DETRÁS del planeta.
+   ========================================================= */
+
+.planeta--outer-wilds .luna {
+  /* Un punto sin tamaño en el centro de la esfera dibujada */
+  position: absolute;
+  left: 50%;
+  top: calc(100% - 50% * var(--tamano-arte));
+  z-index: 1;
+  /* La órbita se inclina igual que la de los planetas (data-giro del HTML) */
+  rotate: -0.16rad;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  animation: luna-delante-detras var(--vuelta-luna) linear infinite;
+  /* Quieta mientras no se ve: no gasta nada */
+  animation-play-state: paused;
+  pointer-events: none;
+}
+
+.planeta--outer-wilds .luna__lado {
+  position: absolute;
+  /* Medio recorrido por animación y "alternate" para volver:
+     así va y viene sin saltos. La de arriba/abajo empieza
+     un cuarto de vuelta antes (retraso negativo). */
+  animation:
+    luna-lado calc(var(--vuelta-luna) / 2) cubic-bezier(0.37, 0, 0.63, 1) infinite alternate,
+    luna-altura calc(var(--vuelta-luna) / 2) cubic-bezier(0.37, 0, 0.63, 1) calc(var(--vuelta-luna) / -4) infinite alternate;
+  animation-play-state: paused;
+}
+
+.planeta--outer-wilds .luna__arte {
+  position: absolute;
+  /* La imagen es 1.28 veces la luna (por el halo azul) */
+  width: calc(var(--tam-planeta) * var(--tamano-luna) * 1.28);
+  max-width: none;
+  height: auto;
+  translate: -50% -50%;    /* centrada en el punto */
+  rotate: 0.16rad;         /* deshace la inclinación: la luna no se ladea */
+  animation: luna-cerca calc(var(--vuelta-luna) / 2) cubic-bezier(0.37, 0, 0.63, 1) calc(var(--vuelta-luna) / -4) infinite alternate;
+  animation-play-state: paused;
+  user-select: none;
+}
+
+/* Al pasar el ratón (o con el teclado): aparece y gira */
+.planeta--outer-wilds .planeta__enlace:hover .luna,
+.planeta--outer-wilds .planeta__enlace:focus-visible .luna {
+  opacity: 1;
+  transition-duration: 1.2s; /* aparece despacio; se va más rápido */
+}
+
+.planeta--outer-wilds .planeta__enlace:hover :is(.luna, .luna__lado, .luna__arte),
+.planeta--outer-wilds .planeta__enlace:focus-visible :is(.luna, .luna__lado, .luna__arte) {
+  animation-play-state: running;
+}
+
+/* Media vuelta delante (0% → 50%) y media detrás (50% → 100%) */
+@keyframes luna-delante-detras {
+  0%, 50% { z-index: 3; }
+  50.01%, 100% { z-index: 1; }
+}
+
+/* Derecha → izquierda */
+@keyframes luna-lado {
+  from { translate: calc(var(--tam-planeta) * var(--radio-luna)) 0; }
+  to { translate: calc(var(--tam-planeta) * var(--radio-luna) * -1) 0; }
+}
+
+/* Arriba (lejos) → abajo (cerca). Usa "transform" para no pisar el
+   "translate" de luna-lado: los dos se suman */
+@keyframes luna-altura {
+  from { transform: translateY(calc(var(--tam-planeta) * var(--radio-luna) * var(--aplastado) * -1)); }
+  to { transform: translateY(calc(var(--tam-planeta) * var(--radio-luna) * var(--aplastado))); }
+}
+
+/* Lejos = más pequeña, cerca = más grande */
+@keyframes luna-cerca {
+  from { scale: 0.8; }
+  to { scale: 1.1; }
+}
+
+/* Sin movimiento: la luna aparece quieta arriba a la derecha, por delante */
+@media (prefers-reduced-motion: reduce) {
+  .planeta--outer-wilds .luna,
+  .planeta--outer-wilds .luna__lado,
+  .planeta--outer-wilds .luna__arte {
+    animation: none;
+  }
+
+  .planeta--outer-wilds .luna {
+    z-index: 3;
+  }
+
+  .planeta--outer-wilds .luna__lado {
+    translate: calc(var(--tam-planeta) * var(--radio-luna) * 0.85) calc(var(--tam-planeta) * var(--radio-luna) * -0.3);
+  }
+}
+
+/* =========================================================
+   LA CARTA DE OUTER WILDS (js/carta-outer-wilds.js)
+   Usa las mismas clases que la carta de Ludwig (.portal, .carta),
+   así sale en el mismo sitio y con el mismo alto. Solo cambia:
+   ========================================================= */
+.portal--ow {
+  z-index: 14; /* por encima de las otras cartas si se cruzan */
+  --carta-proporcion: calc(608 / 1071); /* ancho ÷ alto de la imagen: con el alto común, su ancho sale solo */
+}
+
+.portal--ow .carta {
+  aspect-ratio: 608 / 1071;
+  border-radius: 6px; /* el marco de la imagen tiene las esquinas un poco redondeadas */
+}
+
+/* Sombra negra y un halo violeta con un toque naranja: los dos colores de la carta */
+.portal--ow .carta::before {
+  box-shadow:
+    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.95),
+    0 0 2.4rem rgba(140, 130, 255, 0.18),
+    0 0 0.7rem rgba(255, 130, 50, 0.12);
+}
+
+/* El destello que cruza la carta al terminar: luz violeta, como el glifo */
+.portal--ow .carta::after {
+  background-image: linear-gradient(105deg, transparent 40%, rgba(190, 185, 255, 0.8) 50%, transparent 60%);
+}

@@ -1,0 +1,112 @@
+/* =========================================================
+   PLANETA DE THE WITCHER 3
+   Un reino flotante: castillo, puente de torres, un lago con un barco,
+   un faro, un molino, una montaña, cascadas azules y lava a un lado,
+   y un dragón que vuela fuera.
+   Son dos imágenes del mismo dibujo, una encima de otra
+   (originales: stylesrefence/planets/TheWitcher7.png y TheWitcher317.png):
+   - img/planetas/witcher.webp     → al atardecer (siempre visible)
+   - img/planetas/witcher-luz.webp → con luz de día y nieve (al pasar el ratón)
+   Los originales traían el cuadriculado de "transparente" pintado
+   dentro de la imagen: se quitó buscando ese patrón de cuadros (no
+   solo el color, para no borrar la nieve blanca de la montaña).
+   La versión de día venía algo más grande y movida: se encajó
+   encima de la otra por la silueta.
+   Al pasar el ratón, el planeta crece (regla general de
+   inicio.css) y "amanece": aparece la versión de día.
+   ========================================================= */
+
+/* La esfera no pinta nada: todo lo pone la imagen */
+.planeta--witcher .planeta__esfera {
+  background: none;
+  box-shadow: none;
+}
+
+/* "Próximamente" apaga los planetas con gris; aquí perderíamos el
+   verde, el azul y el fuego, así que no lo aplicamos */
+.planeta--witcher[data-estado="proximamente"] .planeta__esfera,
+.planeta--witcher[data-estado="proximamente"] .planeta__enlace:hover .planeta__esfera {
+  filter: none;
+}
+
+/* ----- Colocar la imagen sobre la esfera -----
+   En la imagen (512 × 572 px) el cuenco de piedra mide 482 px de
+   ancho y su centro está en x = 245. Con --tamano-arte = 1 el cuenco
+   mide lo mismo que el círculo de .planeta__esfera:
+   - ancho de la imagen = 512 / 482 = 1.062 veces el cuenco (106.24%)
+   - izquierda = 50% − 245/482 = 50% − 50.85%
+   Lo más bajo del dibujo (las gotas de lava y agua) se apoya en el
+   fondo del círculo (la isla crece hacia arriba y a los lados):
+   - arriba    = 100% − 572/482 = 100% − 118.69%
+   2.03 = el mismo tamaño que Elden Ring (su cuenco mide 2.03 veces el círculo).
+   ¡Prueba a cambiarlo! (1 = igual que el círculo, 1.7 = mucho más grande) */
+.planeta--witcher {
+  --tamano-arte: 2.03;
+}
+
+.planeta--witcher .planeta__arte {
+  position: absolute;
+  left: calc(50% - 50.85% * var(--tamano-arte));
+  top: calc(100% - 118.69% * var(--tamano-arte));
+  width: calc(106.24% * var(--tamano-arte));
+  max-width: none; /* el reset de global.css limita las imágenes al 100%: aquí no */
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ----- Amanecer al pasar el ratón -----
+   La versión de día está encima pero transparente (opacity: 0).
+   Al pasar el ratón se vuelve opaca y un halo de sol la rodea.
+   La del atardecer se desvanece un poco más tarde: los dos dibujos no
+   coinciden al píxel (el dragón, las banderas) y así nunca se ven
+   los dos a medias a la vez. */
+.planeta--witcher .planeta__arte--dormido {
+  transition: opacity 0.3s ease;
+}
+
+.planeta--witcher .planeta__enlace:hover .planeta__arte--dormido,
+.planeta--witcher .planeta__enlace:focus-visible .planeta__arte--dormido {
+  opacity: 0;
+  transition-delay: 0.3s; /* espera a que el día ya cubra casi todo */
+}
+
+.planeta--witcher .planeta__arte--luz {
+  opacity: 0;
+  transition: opacity 0.5s ease, filter 0.5s ease;
+}
+
+.planeta--witcher .planeta__enlace:hover .planeta__arte--luz,
+.planeta--witcher .planeta__enlace:focus-visible .planeta__arte--luz {
+  opacity: 1;
+  /* drop-shadow sigue la forma del dibujo (dragón incluido), no un cuadrado */
+  filter: brightness(1.06) drop-shadow(0 0 calc(var(--tam-planeta) * 0.12) rgba(255, 214, 140, 0.5));
+}
+
+/* =========================================================
+   LA CARTA DE THE WITCHER 3 (js/carta-witcher.js)
+   Usa las mismas clases que la carta de Ludwig (.portal, .carta),
+   así sale en el mismo sitio y con el mismo ancho. Solo cambia:
+   ========================================================= */
+.portal--witcher {
+  z-index: 12; /* por encima de las otras cartas si se cruzan */
+  --carta-proporcion: calc(608 / 907); /* ancho ÷ alto: mismo alto que las otras, así que sale más ancha */
+}
+
+/* Proporción de esta imagen (608 × 907, la carta del bosque rojo): es más baja que las otras */
+.portal--witcher .carta {
+  aspect-ratio: 608 / 907;
+}
+
+/* Sombra negra y un halo rojo, como el eclipse y el bosque de la carta */
+.portal--witcher .carta::before {
+  box-shadow:
+    0 1.5rem 3rem -1rem rgba(0, 0, 0, 0.95),
+    0 0 2.5rem rgba(220, 60, 40, 0.16);
+}
+
+/* El destello que cruza la carta al terminar: aquí de luz dorada,
+   así brilla el oro del grabado y el negro sigue negro */
+.portal--witcher .carta::after {
+  background-image: linear-gradient(105deg, transparent 40%, rgba(255, 214, 150, 0.8) 50%, transparent 60%);
+}
