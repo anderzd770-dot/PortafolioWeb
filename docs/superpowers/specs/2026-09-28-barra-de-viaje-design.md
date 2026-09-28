@@ -54,7 +54,7 @@ Reglas comunes:
 
 | Destino | Placa | Al aparecer | Al activarse |
 |---|---|---|---|
-| Ludwig (Z) | Cromo gris frío, texto grabado oscuro | Se forma a cuadraditos (píxeles) | Reflejo de luz cruza el cromo + borde rojo como los ojos del dragón |
+| Ludwig (Z) | **Dibujo de Ludwig** (`img/placas/ludwig.webp`, de `stylesrefence/barras/Ludwig1.png`; el texto va en el dibujo) | Se arma por píxeles en espiral como su carta (`js/placa-ludwig.js`, lienzo propio) | Crece ×1,1 + brillo rojo con su forma + reflejo de cromo (2 franjas) recortado al dibujo. De momento la activa usa el mismo dibujo |
 | Hollow Knight | Negro de vacío, marco blanco fino | Mancha de tinta que se abre desde el centro | Halo blanco pálido que late una vez y se queda suave |
 | The Witcher 3 | Negro rojizo, borde rojo (220,60,40) | Se quema desde el centro con borde naranja | Borde de brasa + resplandor rojo-naranja con 2–3 parpadeos de llama |
 | Cyberpunk 2077 | Negro, esquinas cortadas, borde verde neón, sombra magenta | Franjas que saltan de lado (glitch) | Texto separado en rojo/cian + línea de barrido que baja |
