@@ -97,15 +97,15 @@
   display: none;
 }
 
-/* Tus dos dibujos: el segundo PNG tiene márgenes transparentes más grandes.
-   background-size y position muestran el mismo recorte que el lienzo del JS. */
+/* Tus dibujos «Rumbo a el Void» y «Conocer el Void», preparados a 640 × 206.
+   El lienzo y el CSS comparten tamaño para que el cambio no dé un salto. */
 .viaje[data-tema="hollow-knight"] {
   width: min(22rem, 100% - 2 * var(--margen-lateral));
 }
 
 .viaje[data-tema="hollow-knight"] .viaje__placa {
   --placa-brillo: rgba(232, 230, 240, 0.2);
-  aspect-ratio: 2172 / 700;
+  aspect-ratio: 640 / 206;
   min-height: 0;
   padding: 0;
   border: 0;

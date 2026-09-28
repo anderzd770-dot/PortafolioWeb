@@ -196,6 +196,8 @@
 
 /* ----- Escenario de la órbita ----- */
 .orbita {
+  /* Baja juntos el agujero y los planetas para equilibrarlos con carta y barra. */
+  --bajada-conjunto: clamp(16px, 3vh, 28px);
   /* Tamaño de los planetas: mínimo 58px, ideal 8% del ancho, máximo 104px */
   --tam-planeta: clamp(58px, 8vw, 104px);
   /* Diámetro del agujero negro, en planetas: 1.9 = 1.9 veces un planeta. Todo lo del agujero
@@ -716,7 +718,7 @@ button.planeta__enlace {
 .orbita--viva .orbita__logo {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: calc(50% + var(--bajada-conjunto));
   z-index: 50;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -732,7 +734,7 @@ button.planeta__enlace {
 .orbita--viva .planeta {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: calc(50% + var(--bajada-conjunto));
   will-change: transform, filter; /* orbita.js los mueve (transform) y oscurece los de atrás (filter) */
 }
 
@@ -766,7 +768,7 @@ button.planeta__enlace {
   }
 
   .orbita {
+    --bajada-conjunto: 12px; /* en móvil dejamos más espacio para la barra inferior */
     min-height: 480px;
   }
 }
-

@@ -31,9 +31,10 @@
   dibujo.src = "img/placas/hollow-knight-inicio.webp";
   const dibujoActivo = new Image();
   dibujoActivo.src = "img/placas/hollow-knight-activa.webp";
-  // Recortamos solo al dibujar: los PNG originales quedan intactos.
-  const RECORTE_INICIO = [0, 0, 640, 206]; // las imágenes WebP ya vienen recortadas: se usan enteras
-  const RECORTE_ACTIVA = [0, 0, 640, 207];
+  // «Rumbo a el Void» → «Conocer el Void», con los dos dibujos alineados.
+  // Las copias WebP miden lo mismo; los PNG originales quedan intactos.
+  const RECORTE_INICIO = [0, 0, 640, 206];
+  const RECORTE_ACTIVA = [0, 0, 640, 206];
   const DURACION_CAMBIO = 1100; // ms que tardan las dos sombras en cruzar y cambiar las palabras
   let cambio = 0;
   let fotogramaCambio = 0;
