@@ -223,7 +223,7 @@
    Tus dos dibujos (img/placas/): "Rumbo a 2077" mientras el dragón viene
    y "Conocer 2077" cuando se activa. Recortados a la misma caja (el segundo,
    con sus bloques de glitch arriba y abajo): el marco coincide.
-   Aparece como la señal de la carta y se activa descifrándose por columnas.
+   Aparece como la señal de la carta y se activa con un glitch mucho más fuerte.
    ========================================================= */
 .viaje[data-tema="cyberpunk"] {
   width: min(22rem, 100% - 2 * var(--margen-lateral)); /* igual de ancha que las otras placas */
@@ -253,7 +253,7 @@
   visibility: hidden;
 }
 
-/* Sin brillo alrededor al activarse: el destello magenta ya lo marca */
+/* Sin brillo alrededor al activarse: el fogonazo verde del glitch ya lo marca */
 .viaje[data-tema="cyberpunk"][data-estado="activa"] .viaje__placa {
   box-shadow: none;
 }

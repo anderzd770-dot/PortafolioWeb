@@ -8,11 +8,11 @@
 //    se calman. Líneas de barrido, bloques de datos rotos y dos parpadeos.
 //    Mismos tiempos que la carta.
 //
-// 2. SE ACTIVA "DESCIFRÁNDOSE": cuando el dragón se posa, la placa se corta en
-//    columnas verticales que ruedan hacia arriba una detrás de otra, de izquierda
-//    a derecha (como un código que se descifra). Por abajo entra el dibujo nuevo
-//    ("Conocer 2077"); la unión brilla en verde y cada columna, al encajar,
-//    destella en magenta.
+// 2. SE ACTIVA CON UN GLITCH FUERTE: cuando el dragón se posa, la señal se rompe
+//    del todo. Las franjas enseñan a golpes el dibujo viejo o el nuevo
+//    ("Conocer 2077"), saltan lejos, el rojo y el cian se separan mucho, la placa
+//    da botes, se tiñe de verde o magenta y salen bloques de datos rotos.
+//    Al final todo encaja de golpe con un fogonazo verde.
 //
 // Este archivo no toca la barra: solo MIRA sus atributos (data-tema, data-estado)
 // y pinta en su lienzo. Mientras pinta, pone data-cyber-pintando en la barra
@@ -35,11 +35,15 @@ const VERDE = "125, 255, 90";  // los dos neones (los mismos que la carta)
 const MAGENTA = "226, 60, 255";
 const SEMILLA = 2077;
 
-// ----- Ajustes de la activación (el descifrado) -----
-const DURACION_CAMBIO = 1.0;   // segundos que dura
-const COLUMNAS = 22;           // columnas en las que se corta la placa
-const RODAR = 0.25;            // lo que tarda cada columna en rodar (fracción de la duración)
-const ESCALONAR = 0.6;         // de la primera a la última columna, cuánto se retrasan (fracción)
+// ----- Ajustes de la activación (el glitch fuerte) -----
+const DURACION_CAMBIO = 0.9;   // segundos que dura
+const ALTO_FRANJA_FUERTE = [0.05, 0.3]; // franjas algo más gruesas que al aparecer
+const SALTOS_FUERTES = 30;     // golpes por segundo (más = más nervioso)
+const SALTO_FUERTE = 0.06;     // lo lejos que saltan las franjas (fracción del ancho): ~3 veces la aparición
+const SEPARACION_FUERTE = 0.03; // lo separados que van el rojo y el cian (fracción del ancho)
+const BOTE = 0.15;             // lo que bota la placa entera arriba y abajo (fracción del alto)
+const BLOQUES_FUERTES = 6;     // bloques de datos rotos que pueden salir en cada golpe
+const LINEAS_FUERTES = 0.3;    // lo oscuras que son las líneas de barrido
 
 // ----- Elementos -----
 const barra = document.querySelector(".viaje");
@@ -49,7 +53,7 @@ lienzo.className = "viaje__senal-cyber";
 lienzo.setAttribute("aria-hidden", "true");
 barra.querySelector(".viaje__lienzo").append(lienzo);
 const ctx = lienzo.getContext("2d");
-// Capa para el brillo del descifrado (se recorta a la forma del dibujo)
+// Capa para los tintes y el fogonazo del glitch fuerte
 const luces = document.createElement("canvas");
 const lucesCtx = luces.getContext("2d");
 const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -89,8 +93,8 @@ let ancho = 0, alto = 0, dpr = 1;                   // tamaño del lienzo (px CS
 let placaX = 0, placaY = 0, placaW = 0, placaH = 0; // la placa dentro del lienzo
 let franjas = [];
 let bloques = [];
-let rojo = null;   // copia del dibujo con solo el canal rojo
-let cian = null;   // copia con solo verde y azul
+let canalesInicio = null; // los dos dibujos separados en rojo y cian (ver canalesDe)
+let canalesActiva = null;
 
 function medir() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -112,6 +116,11 @@ function medir() {
 // Las dos copias de color (como la carta): multiplicar por rojo puro deja solo
 // el rojo; por cian, el resto. Sumadas con "lighter" vuelven a dar el dibujo
 function prepararCanales() {
+  canalesInicio = canalesDe(dibujo);
+  canalesActiva = canalesDe(dibujoActivo);
+}
+
+function canalesDe(img) {
   const w = Math.max(1, Math.round(placaW * dpr));
   const h = Math.max(1, Math.round(placaH * dpr));
   const copia = (color) => {
@@ -119,17 +128,16 @@ function prepararCanales() {
     c.width = w;
     c.height = h;
     const x = c.getContext("2d");
-    x.drawImage(dibujo, 0, 0, w, h);
+    x.drawImage(img, 0, 0, w, h);
     x.globalCompositeOperation = "multiply";
     x.fillStyle = color;
     x.fillRect(0, 0, w, h);
     // multiply también pinta lo transparente: le devolvemos la forma del dibujo
     x.globalCompositeOperation = "destination-in";
-    x.drawImage(dibujo, 0, 0, w, h);
+    x.drawImage(img, 0, 0, w, h);
     return c;
   };
-  rojo = copia("#ff0000");
-  cian = copia("#00ffff");
+  return { rojo: copia("#ff0000"), cian: copia("#00ffff") };
 }
 
 // =========================================================
@@ -158,14 +166,15 @@ function crearGlitch() {
   }
 }
 
-// Una franja del dibujo, movida "dx" de lado y con los colores separados "sep"
-function pintarFranja(f, dx, sep) {
+// Una franja de un dibujo (sus "canales"), movida dx de lado y dy de alto,
+// con los colores separados "sep"
+function pintarFranja(canales, f, dx, dy, sep) {
   const sy = f.y * dpr;
   const sh = Math.max(1, f.h * dpr);
   ctx.globalCompositeOperation = "source-over";
-  ctx.drawImage(rojo, 0, sy, rojo.width, sh, placaX + dx + sep, placaY + f.y, placaW, f.h);
+  ctx.drawImage(canales.rojo, 0, sy, canales.rojo.width, sh, placaX + dx + sep, placaY + f.y + dy, placaW, f.h);
   ctx.globalCompositeOperation = "lighter"; // rojo + cian = los colores de verdad
-  ctx.drawImage(cian, 0, sy, cian.width, sh, placaX + dx - sep, placaY + f.y, placaW, f.h);
+  ctx.drawImage(canales.cian, 0, sy, canales.cian.width, sh, placaX + dx - sep, placaY + f.y + dy, placaW, f.h);
   ctx.globalCompositeOperation = "source-over";
 }
 
@@ -183,7 +192,7 @@ function dibujarGlitch(progreso) {
     const nervio = enChispazo ? 1 : Math.pow(1 - q, 2);
     const r = ruido(i + 1, paso);
     const dx = (Math.abs(r) > 0.55 ? r : 0) * SALTO * placaW * nervio; // solo salta en algunos golpes
-    pintarFranja(f, dx, SEPARACION * placaW * nervio);
+    pintarFranja(canalesInicio, f, dx, 0, SEPARACION * placaW * nervio);
     encendidas.rect(placaX, placaY + f.y, placaW, f.h);
   });
 
@@ -210,69 +219,99 @@ function dibujarGlitch(progreso) {
 }
 
 // =========================================================
-// 2. LA ACTIVACIÓN: el descifrado por columnas
+// 2. LA ACTIVACIÓN: el glitch fuerte
 // =========================================================
-// Cada columna es una "tira" con el dibujo viejo arriba y el nuevo justo debajo.
-// Al rodar, la tira sube un alto de placa entero: el viejo sale por arriba y el
-// nuevo entra por abajo. Solo se ve lo que cae dentro del hueco de la placa (clip).
-let columnas = [];
+// La misma idea que la aparición, pero rota del todo. En cada "golpe", cada franja
+// elige al azar si enseña el dibujo viejo o el nuevo; la probabilidad del nuevo
+// ("nuevo") sube de 0 a 1, así que al final todas enseñan "Conocer 2077".
+// "nervio" dice lo rota que está la señal: sube de golpe, se queda y se calma al final.
+let franjasFuertes = [];
 
-function prepararDescifrado() {
-  const azar = Math.random; // cada activación, un ritmo algo distinto
-  columnas = Array.from({ length: COLUMNAS }, (_, i) => ({
-    x: (i / COLUMNAS) * placaW,
-    w: placaW / COLUMNAS,
-    empieza: (i / Math.max(1, COLUMNAS - 1)) * ESCALONAR + (azar() - 0.5) * 0.06,
-  }));
+function prepararGlitchFuerte() {
+  const azar = Math.random; // cada activación, franjas distintas
+  franjasFuertes = [];
+  let y = 0;
+  while (y < placaH) {
+    const h = Math.min(placaH - y, placaH * (ALTO_FRANJA_FUERTE[0] + azar() * azar() * (ALTO_FRANJA_FUERTE[1] - ALTO_FRANJA_FUERTE[0])));
+    franjasFuertes.push({ y, h });
+    y += h;
+  }
 }
 
-function dibujarDescifrado(segundos) {
-  ctx.clearRect(0, 0, ancho, alto);
+// Pinta un dibujo en la capa de luces teñido de un color y lo suma a la placa
+function tenir(img, dy, color, fuerza) {
   lucesCtx.clearRect(0, 0, ancho, alto);
-  const c = limitar(segundos / DURACION_CAMBIO);
-  const escalaX = dibujo.naturalWidth / placaW; // para recortar la columna de la imagen original
-  const escalaY = dibujo.naturalHeight / placaH;
-
-  for (const col of columnas) {
-    const q = tramo(c, col.empieza, col.empieza + RODAR); // 0 = sin empezar, 1 = ya encajada
-    const sube = suave(q) * placaH;                       // lo que ha subido la tira
-    const x = placaX + col.x;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, placaY, col.w + 0.5, placaH); // +0.5: sin rendijas entre columnas
-    ctx.clip();
-    // El trozo de la imagen original que le toca a esta columna
-    const sx = col.x * escalaX, sw = (col.w + 0.5) * escalaX;
-    if (q < 1) ctx.drawImage(dibujo, sx, 0, sw, placaH * escalaY, x, placaY - sube, col.w + 0.5, placaH);
-    if (q > 0) ctx.drawImage(dibujoActivo, sx, 0, sw, placaH * escalaY, x, placaY + placaH - sube, col.w + 0.5, placaH);
-    ctx.restore();
-
-    // La unión entre los dos dibujos brilla en verde mientras rueda
-    if (q > 0 && q < 1) {
-      lucesCtx.fillStyle = `rgba(${VERDE}, 0.9)`;
-      lucesCtx.fillRect(x, placaY + placaH - sube - 1, col.w + 0.5, 2);
-      lucesCtx.fillStyle = `rgba(${VERDE}, 0.18)`;
-      lucesCtx.fillRect(x, placaY, col.w + 0.5, placaH); // la columna que rueda se ilumina un poco
-    }
-    // Al encajar, un destello magenta que se apaga enseguida
-    const destello = 1 - tramo(c, col.empieza + RODAR, col.empieza + RODAR + 0.12);
-    if (q >= 1 && destello > 0) {
-      lucesCtx.fillStyle = `rgba(${MAGENTA}, ${0.45 * destello})`;
-      lucesCtx.fillRect(x, placaY, col.w + 0.5, placaH);
-    }
-  }
-
-  // El brillo solo donde hay dibujo (destination-in): nada de rectángulos en el aire
-  lucesCtx.globalCompositeOperation = "destination-in";
-  lucesCtx.drawImage(dibujoActivo, placaX, placaY, placaW, placaH);
+  lucesCtx.drawImage(img, placaX, placaY + dy, placaW, placaH);
+  lucesCtx.globalCompositeOperation = "source-in"; // el color solo donde hay dibujo
+  lucesCtx.fillStyle = `rgb(${color})`;
+  lucesCtx.fillRect(0, 0, ancho, alto);
   lucesCtx.globalCompositeOperation = "source-over";
   ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = fuerza;
   ctx.drawImage(luces, 0, 0, ancho, alto);
+  ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = "source-over";
 }
 
+function dibujarGlitchFuerte(segundos) {
+  ctx.clearRect(0, 0, ancho, alto);
+  const c = limitar(segundos / DURACION_CAMBIO);
+  const nervio = tramo(c, 0, 0.06) * (1 - suave(tramo(c, 0.7, 0.92)));
+  const nuevo = suave(tramo(c, 0.12, 0.7));
+  const paso = Math.floor(segundos * SALTOS_FUERTES); // el "golpe" actual
+
+  // La placa entera bota arriba o abajo en algunos golpes
+  const bote = ruido(97, paso);
+  const dy = (Math.abs(bote) > 0.6 ? bote : 0) * BOTE * placaH * nervio;
+
+  // 1. Las franjas: viejo o nuevo al azar, saltos grandes y colores muy separados
+  franjasFuertes.forEach((f, i) => {
+    const eleccion = (ruido(i + 11, paso) + 1) / 2; // de 0 a 1
+    const canales = eleccion < nuevo ? canalesActiva : canalesInicio;
+    const r = ruido(i + 1, paso + 500);
+    const desgarro = Math.abs(r) > 0.8 ? 2.5 : 1; // algunas se desgarran muchísimo
+    const dx = r * SALTO_FUERTE * placaW * desgarro * nervio;
+    const sep = SEPARACION_FUERTE * placaW * nervio * (0.5 + 0.5 * Math.abs(ruido(i + 3, paso)));
+    pintarFranja(canales, f, dx, dy, sep);
+  });
+
+  // 2. Líneas de barrido más marcadas (source-atop: solo encima de lo ya pintado)
+  if (nervio > 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = "source-atop";
+    ctx.fillStyle = `rgba(0, 0, 0, ${LINEAS_FUERTES * nervio})`;
+    for (let y = placaY - placaH; y < placaY + 2 * placaH; y += 3) ctx.fillRect(placaX - placaW * 0.3, y, placaW * 1.6, 1);
+    ctx.restore();
+  }
+
+  // 3. En algunos golpes, la placa entera se tiñe de verde o magenta
+  const tinte = ruido(53, paso);
+  if (Math.abs(tinte) > 0.7 && nervio > 0.3) {
+    tenir(nuevo > 0.5 ? dibujoActivo : dibujo, dy, tinte > 0 ? VERDE : MAGENTA, 0.55 * nervio);
+  }
+
+  // 4. Bloques de datos rotos: en cada golpe salen unos cuantos en sitios distintos
+  ctx.globalCompositeOperation = "lighter";
+  for (let b = 0; b < BLOQUES_FUERTES && nervio > 0; b++) {
+    if (ruido(b + 200, paso) < 0.1) continue; // no salen todos en cada golpe
+    const azar = (n) => (ruido(b + n, paso) + 1) / 2; // de 0 a 1
+    ctx.fillStyle = `rgba(${b % 2 ? VERDE : MAGENTA}, ${0.6 * nervio})`;
+    ctx.fillRect(
+      placaX + azar(300) * placaW * 0.9,
+      placaY + (0.1 + azar(400) * 0.8) * placaH + dy,
+      (0.05 + azar(500) * 0.25) * placaW,
+      Math.max(1, (0.03 + azar(600) * 0.08) * placaH)
+    );
+  }
+  ctx.globalCompositeOperation = "source-over";
+
+  // 5. El fogonazo verde cuando todo encaja
+  const fogonazo = tramo(c, 0.7, 0.76) * (1 - tramo(c, 0.76, 1));
+  if (fogonazo > 0) tenir(dibujoActivo, 0, VERDE, 0.7 * fogonazo);
+}
+
 // ----- Animación -----
-// modo: "" (nada), "glitch" (apareciendo) o "descifrado" (activándose)
+// modo: "" (nada), "glitch" (apareciendo) o "fuerte" (activándose)
 let modo = "";
 let tiempo = 0;   // segundos desde que empezó el modo actual
 let anterior = 0;
@@ -286,7 +325,7 @@ function animar(ahora) {
     dibujarGlitch(tiempo / DURACION);
   } else {
     if (tiempo >= DURACION_CAMBIO) return terminar();
-    dibujarDescifrado(tiempo);
+    dibujarGlitchFuerte(tiempo);
   }
   requestAnimationFrame(animar);
 }
@@ -294,13 +333,13 @@ function animar(ahora) {
 function empezar(nuevoModo) {
   medir();
   if (nuevoModo === "glitch") crearGlitch();
-  else prepararDescifrado();
+  else prepararGlitchFuerte();
   const yaAnimaba = modo !== "";
   modo = nuevoModo;
   tiempo = 0;
   barra.dataset.cyberPintando = "";
   if (nuevoModo === "glitch") dibujarGlitch(0);
-  else dibujarDescifrado(0);
+  else dibujarGlitchFuerte(0);
   if (!yaAnimaba) {
     anterior = performance.now();
     requestAnimationFrame(animar);
@@ -336,7 +375,7 @@ function revisar() {
   if (estado === "activa" && !cambiada) {
     formada = true;
     cambiada = true;
-    empezar("descifrado"); // si aún se estaba formando, pasa directamente al cambio
+    empezar("fuerte"); // si aún se estaba formando, pasa directamente al cambio
   }
 }
 
