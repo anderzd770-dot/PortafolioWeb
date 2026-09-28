@@ -73,10 +73,12 @@ Ninguna placa usa logos, personajes ni arte oficial.
   `pointerleave`/`blur`), lleva el estado de la barra y da órdenes al dragón.
 - **`js/dragon-vuelo.js`** deja de escuchar a los planetas y obedece dos eventos en `document`:
   - `dragon-llamar` (`detail`: punto de aterrizaje) → vuela de abajo-izquierda a ese punto en ≈ 2 s
-    (`DURACION_VUELO`); la onda del cuerpo se calma al llegar para quedar recto.
+    (`DURACION_VUELO`); las curvas del camino se aplanan y el último largo de dragón es recto,
+    para que llegue tumbado. Se conserva la 3ª versión del dragón (tiras rígidas que siguen el
+    rastro de la cabeza, cuello de rigidez gradual): sin ola del cuerpo.
   - `dragon-despedir` → se desvanece.
   - Al llegar emite **`dragon-posado`**. Entonces el lienzo se funde (0,15 s) con la imagen quieta
-    `img/dragon-posado.webp`, ya colocada bajo la placa.
+    (`img/dragon-vuelo.webp`, el mismo dibujo), ya colocada bajo la placa: no se nota el cambio.
 - **Datos en el HTML** de cada destino: `data-destino="hollow-knight" data-nombre="Hollow Knight"` y,
   si tiene página, `data-enlace="outer-wilds/"`. Crear un mundo nuevo = añadir su `data-enlace`.
 
@@ -99,12 +101,12 @@ Si la barra está activa y se pulsa **Tab en su destino**, el foco salta a la ba
 Tab va al destino siguiente y Shift+Tab vuelve al suyo. Con ratón no cambia nada.
 
 ### Archivos
-- Nuevos: `js/barra-viaje.js`, `css/barra-viaje.css` (base + placa de Ludwig), `img/dragon-posado.webp`.
+- Nuevos: `js/barra-viaje.js`, `css/barra-viaje.css` (base + placa de Ludwig).
 - Cambiados: `index.html` (datos en los 8 destinos, marcado de la barra, `<link>` y `<script>`),
   `js/dragon-vuelo.js`, y al final de cada `css/planetas/<juego>.css` su placa.
-- Imagen del dragón posado: dibujo pegado por Ludwig (≈ 1960×800, fondo blanco; probablemente uno de
-  los 1944×809 de `stylesrefence/dragon/`, comprobar comparando a 64×64). Quitar el fondo blanco y
-  convertir a WebP con canvas (sin herramientas externas), igual que el dragón que vuela.
+- Imagen del dragón posado: el dibujo que pegó Ludwig es `stylesrefence/dragon/Dragon17z.png`, el mismo
+  que ya usa el dragón que vuela (`img/dragon-vuelo.webp`, 627×240, con transparencia). Se usa ese archivo:
+  no hace falta convertir otra imagen.
 
 ## 4. Casos raros y pruebas
 
