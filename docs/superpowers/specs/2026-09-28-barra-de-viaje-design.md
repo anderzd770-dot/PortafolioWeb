@@ -72,7 +72,7 @@ Ninguna placa usa logos, personajes ni arte oficial.
 - **`js/barra-viaje.js` (nuevo)** manda: escucha a los 8 destinos (`pointerenter`/`focus`,
   `pointerleave`/`blur`), lleva el estado de la barra y da órdenes al dragón.
 - **`js/dragon-vuelo.js`** deja de escuchar a los planetas y obedece dos eventos en `document`:
-  - `dragon-llamar` (`detail`: punto de aterrizaje) → vuela de abajo-izquierda a ese punto en ≈ 2 s
+  - `dragon-llamar` (`detail`: punto de aterrizaje) → vuela de abajo-izquierda a ese punto en 7 s (pedido de Ludwig), frenando suave al final
     (`DURACION_VUELO`); las curvas del camino se aplanan y el último largo de dragón es recto,
     para que llegue tumbado. Se conserva la 3ª versión del dragón (tiras rígidas que siguen el
     rastro de la cabeza, cuello de rigidez gradual): sin ola del cuerpo.

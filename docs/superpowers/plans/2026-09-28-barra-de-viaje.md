@@ -20,7 +20,7 @@
 - **El dragón que vuela (3ª versión, de otra sesión) NO se reescribe:** tiras rígidas que siguen el rastro de la cabeza, cuello de rigidez gradual, `EJE` 0.64, `SOLAPE` 2. Prohibido volver a estirar tiras o añadir una ola del cuerpo independiente del avance. Solo se cambia el camino, el avance y los avisos.
 - Textos exactos: esperando **"Rumbo a {nombre}"**; activa con página **"{verbo} {nombre}"** (verbo por defecto **"Viajar a"**, Z-dragón **"Conocer a"**); activa sin página **"{nombre} llegará pronto"**.
 - Nombres: `ludwig` "Ludwig" (verbo "Conocer a", enlace `sobre-mi/`), `elden-ring` "Elden Ring", `hollow-knight` "Hollow Knight", `wukong` "Black Myth: Wukong", `cyberpunk` "Cyberpunk 2077", `witcher` "The Witcher 3", `zelda` "Zelda: Ocarina of Time", `outer-wilds` "Outer Wilds" (enlace `outer-wilds/`). Las páginas `sobre-mi/` y `outer-wilds/` aún no existen (ya se enlazan hoy desde el menú y el planeta): se crean en el paso 2 del orden de trabajo de CLAUDE.md.
-- Tiempos: aparecer ≈ 0,45 s; activarse ≈ 0,9 s (una vez; después brillo quieto, sin bucles); vuelo ≈ 2 s; margen al dejar de apuntar 200 ms; activación sin dragón a los 2 s; cruce lienzo → imagen quieta 0,15 s.
+- Tiempos: aparecer ≈ 0,45 s; activarse ≈ 0,9 s (una vez; después brillo quieto, sin bucles); vuelo 7 s (pedido de Ludwig), con frenado suave sin(vuelo·90°); margen al dejar de apuntar 200 ms; activación sin dragón a los 2 s; cruce lienzo → imagen quieta 0,15 s.
 - **Regla de las animaciones:** el estado final de cada placa va en la regla normal; los `@keyframes` solo dicen de dónde viene (`from`/pasos intermedios). Así, con `prefers-reduced-motion` (animaciones quitadas) cada placa se ve completa.
 - Legal: ninguna placa usa logos ni arte oficial; la de Elden Ring **sin círculos ni líneas verticales**.
 - La placa por encima de los planetas (`z-index: 95`; los planetas van de 10 a 90).
@@ -774,7 +774,7 @@ por:
 
 ```js
 // El tamaño se cambia en css/inicio.css (--alto-dragon-vuelo, en .orbita)
-const DURACION_VUELO = 2;       // segundos que tarda en llegar a la placa
+const DURACION_VUELO = 7;       // segundos que tarda en llegar a la placa
 ```
 
 **3c. Quitar la subida** (el camino ahora acaba en la placa). Borrar la línea:
@@ -1667,7 +1667,7 @@ metadata:
   type: project
 ---
 
-2026-09-28: barra de viaje (spec docs/superpowers/specs/2026-09-28-barra-de-viaje-design.md, plan docs/superpowers/plans/2026-09-28-barra-de-viaje.md). Es la "placa del nombre" de la carta. js/barra-viaje.js = estados oculta → esperando ("Rumbo a X") → activa ("Viajar a X" / Z "Conocer a Ludwig" / sin página "X llegará pronto"); solo cambia data-estado y data-tema en .viaje. Habla con js/dragon-vuelo.js por eventos: dragon-llamar {destino: img, vuela}, dragon-despedir, dragon-posado. El dragón ya NO cruza la pantalla: vuela ~2 s hasta la img quieta .viaje__dragon (= img/dragon-vuelo.webp, el mismo dibujo, Dragon17z.png) y se cruza con ella (0,15 s); el camino acaba en un tramo recto de un largo de dragón y las curvas se aplanan al llegar (sin ola del cuerpo: la 3ª versión del dragón se conserva). Activa = se queda al dejar de apuntar; otro destino = sale un dragón nuevo; Escape la guarda. Datos en el HTML: data-destino/nombre/enlace/verbo en los 8 destinos. Estilo: base + Ludwig en css/barra-viaje.css, cada juego al final de su css/planetas/<juego>.css; regla: estado final en la regla, @keyframes solo "from". Hueco .viaje__lienzo para un lienzo propio (enfoque 2) si Ludwig lo pide. --alto-dragon-vuelo ahora vive en .orbita.
+2026-09-28: barra de viaje (spec docs/superpowers/specs/2026-09-28-barra-de-viaje-design.md, plan docs/superpowers/plans/2026-09-28-barra-de-viaje.md). Es la "placa del nombre" de la carta. js/barra-viaje.js = estados oculta → esperando ("Rumbo a X") → activa ("Viajar a X" / Z "Conocer a Ludwig" / sin página "X llegará pronto"); solo cambia data-estado y data-tema en .viaje. Habla con js/dragon-vuelo.js por eventos: dragon-llamar {destino: img, vuela}, dragon-despedir, dragon-posado. El dragón ya NO cruza la pantalla: vuela 7 s hasta la img quieta .viaje__dragon (= img/dragon-vuelo.webp, el mismo dibujo, Dragon17z.png) y se cruza con ella (0,15 s); el camino acaba en un tramo recto de un largo de dragón y las curvas se aplanan al llegar (sin ola del cuerpo: la 3ª versión del dragón se conserva). Activa = se queda al dejar de apuntar; otro destino = sale un dragón nuevo; Escape la guarda. Datos en el HTML: data-destino/nombre/enlace/verbo en los 8 destinos. Estilo: base + Ludwig en css/barra-viaje.css, cada juego al final de su css/planetas/<juego>.css; regla: estado final en la regla, @keyframes solo "from". Hueco .viaje__lienzo para un lienzo propio (enfoque 2) si Ludwig lo pide. --alto-dragon-vuelo ahora vive en .orbita.
 
 Relacionado: [[dragon-vuelo]], [[cartas]], [[planetas-svg]], [[ediciones-en-paralelo]].
 ```
