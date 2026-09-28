@@ -207,3 +207,67 @@
 .portal--ow .carta::after {
   background-image: linear-gradient(105deg, transparent 40%, rgba(190, 185, 255, 0.8) 50%, transparent 60%);
 }
+
+/* =========================================================
+   LA PLACA DE LA BARRA DE VIAJE (js/barra-viaje.js + js/placa-outer-wilds.js)
+   Tus dos dibujos (img/placas/): "Rumbo the Moon" mientras el dragón viene
+   y "Conocer Moon" cuando se activa. Los dos están recortados a la misma caja,
+   así que el marco coincide y solo cambian las letras.
+   Aparece con el glifo de la carta y se activa como la luna cuántica (lienzo del JS).
+   ========================================================= */
+.viaje[data-tema="outer-wilds"] {
+  width: min(22rem, 100% - 2 * var(--margen-lateral)); /* igual de ancha que las de Ludwig y Hollow Knight */
+}
+
+.viaje[data-tema="outer-wilds"] .viaje__placa {
+  aspect-ratio: 640 / 169; /* la proporción de los dibujos */
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible; /* los rayos y las copias salen por fuera de la placa */
+}
+
+.viaje[data-tema="outer-wilds"] .viaje__placa::before {
+  background: url("../../img/placas/outer-wilds-inicio.webp") 50% 50% / 100% 100% no-repeat;
+}
+
+.viaje[data-tema="outer-wilds"][data-estado="activa"] .viaje__placa::before {
+  background-image: url("../../img/placas/outer-wilds-activa.webp");
+}
+
+/* Mientras el lienzo pinta (glifo o luna cuántica), el dibujo de verdad se esconde */
+.viaje[data-tema="outer-wilds"][data-ow-pintando] .viaje__placa::before {
+  visibility: hidden;
+}
+
+/* Sin brillo alrededor al activarse: el anillo violeta del JS ya lo marca */
+.viaje[data-tema="outer-wilds"][data-estado="activa"] .viaje__placa {
+  box-shadow: none;
+}
+
+/* El texto ya está en el dibujo: se queda solo para los lectores de pantalla */
+.viaje[data-tema="outer-wilds"] .viaje__texto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* El lienzo: más grande que la placa, porque los rayos y las copias salen por fuera */
+.viaje__glifo-ow {
+  display: none;
+}
+
+.viaje[data-tema="outer-wilds"] .viaje__glifo-ow {
+  display: block;
+  position: absolute;
+  left: -35%;
+  top: -85%;
+  width: 170%;
+  height: 270%;
+}
