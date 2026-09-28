@@ -28,12 +28,12 @@
   if (!ctx || !capaCtx) return;
   const reducir = matchMedia("(prefers-reduced-motion: reduce)");
   const dibujo = new Image();
-  dibujo.src = "img/placas/hollow-knight-inicio.png";
+  dibujo.src = "img/placas/hollow-knight-inicio.webp";
   const dibujoActivo = new Image();
-  dibujoActivo.src = "img/placas/hollow-knight-activa.png";
+  dibujoActivo.src = "img/placas/hollow-knight-activa.webp";
   // Recortamos solo al dibujar: los PNG originales quedan intactos.
-  const RECORTE_INICIO = [0, 12, 2172, 700];
-  const RECORTE_ACTIVA = [0, 411, 1254, 405];
+  const RECORTE_INICIO = [0, 0, 640, 206]; // las imágenes WebP ya vienen recortadas: se usan enteras
+  const RECORTE_ACTIVA = [0, 0, 640, 207];
   const DURACION_CAMBIO = 1100; // ms que tarda la sombra en cambiar las palabras
   let cambio = 0;
   let fotogramaCambio = 0;

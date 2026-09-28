@@ -117,14 +117,14 @@
 }
 
 .viaje[data-tema="hollow-knight"] .viaje__placa::before {
-  background: url("../../img/placas/hollow-knight-inicio.png") 50% 50% / 100% 103.428571% no-repeat;
+  background: url("../../img/placas/hollow-knight-inicio.webp") 50% 50% / 100% 100% no-repeat; /* ya recortada: solo la parte que se ve */
 }
 
-/* 411 / (1254 - 405) = 48.409894%: quitar solo el margen vacío. */
+/* El dibujo "activa" ya está recortado a la franja que se ve (sin márgenes vacíos) */
 .viaje[data-tema="hollow-knight"][data-hk-activa] .viaje__placa::before {
-  background-image: url("../../img/placas/hollow-knight-activa.png");
-  background-size: 100% 309.62963%;
-  background-position: 50% 48.409894%;
+  background-image: url("../../img/placas/hollow-knight-activa.webp");
+  background-size: 100% 100%;
+  background-position: 50% 50%;
 }
 
 .viaje[data-tema="hollow-knight"][data-hk-formando] .viaje__placa::before {
