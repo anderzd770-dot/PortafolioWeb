@@ -217,3 +217,67 @@
 @keyframes cyber-barrido {
   to { background-position: 0 10%; }
 }
+
+/* =========================================================
+   LA PLACA DE LA BARRA DE VIAJE (js/barra-viaje.js + js/placa-cyberpunk.js)
+   Tus dos dibujos (img/placas/): "Rumbo a 2077" mientras el dragón viene
+   y "Conocer 2077" cuando se activa. Recortados a la misma caja (el segundo,
+   con sus bloques de glitch arriba y abajo): el marco coincide.
+   Aparece como la señal de la carta y se activa descifrándose por columnas.
+   ========================================================= */
+.viaje[data-tema="cyberpunk"] {
+  width: min(22rem, 100% - 2 * var(--margen-lateral)); /* igual de ancha que las otras placas */
+}
+
+.viaje[data-tema="cyberpunk"] .viaje__placa {
+  aspect-ratio: 640 / 128; /* la proporción de los dibujos */
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible; /* las franjas saltan por fuera de la placa */
+}
+
+.viaje[data-tema="cyberpunk"] .viaje__placa::before {
+  background: url("../../img/placas/cyberpunk-inicio.webp") 50% 50% / 100% 100% no-repeat;
+}
+
+.viaje[data-tema="cyberpunk"][data-estado="activa"] .viaje__placa::before {
+  background-image: url("../../img/placas/cyberpunk-activa.webp");
+}
+
+/* Mientras el lienzo pinta (señal o descifrado), el dibujo de verdad se esconde */
+.viaje[data-tema="cyberpunk"][data-cyber-pintando] .viaje__placa::before {
+  visibility: hidden;
+}
+
+/* Sin brillo alrededor al activarse: el destello magenta ya lo marca */
+.viaje[data-tema="cyberpunk"][data-estado="activa"] .viaje__placa {
+  box-shadow: none;
+}
+
+/* El texto ya está en el dibujo: se queda solo para los lectores de pantalla */
+.viaje[data-tema="cyberpunk"] .viaje__texto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* El lienzo: más grande que la placa, porque las franjas saltan por fuera */
+.viaje__senal-cyber {
+  display: none;
+}
+
+.viaje[data-tema="cyberpunk"] .viaje__senal-cyber {
+  display: block;
+  position: absolute;
+  left: -35%;
+  top: -85%;
+  width: 170%;
+  height: 270%;
+}
