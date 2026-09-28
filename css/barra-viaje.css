@@ -119,20 +119,19 @@
   opacity: 1;
 }
 
-/* ----- Placa de Ludwig (la Z-dragón): TU DIBUJO (img/placas/ludwig.webp) -----
-   El dibujo ya lleva el texto y el marco, así que aquí la placa no tiene fondo ni borde.
-   Aparece armándose por píxeles como tu carta (js/placa-ludwig.js). Al activarse crece
-   un poco y un reflejo de cromo la recorre.
-   (De momento la placa activa usa el mismo dibujo: cuando tengas el de "activa", va aquí) */
+/* ----- Placa de Ludwig (la Z-dragón): TUS DIBUJOS (img/placas/) -----
+   Esperando: ludwig.webp ("Rumbo a Ludwig"). Activa: ludwig-activa.webp ("Conocer a Ludwig").
+   Los dibujos ya llevan el texto y el marco, así que aquí la placa no tiene fondo ni borde.
+   Aparece armándose por píxeles como tu carta; al activarse saltan chispas de píxel,
+   crece un poco y cambia al dibujo de "activa" (las chispas: js/placa-ludwig.js) */
 .viaje[data-tema="ludwig"] {
   width: min(17rem, 100% - 2 * var(--margen-lateral)); /* un poco más ancha: el dibujo tiene estrellas a los lados */
 }
 
 .viaje[data-tema="ludwig"] .viaje__placa {
   --placa-brillo: rgba(225, 30, 40, 0.55); /* el rojo de los ojos del dragón */
-  --dibujo-placa: url("../img/placas/ludwig.webp");
 
-  aspect-ratio: 640 / 205; /* la proporción del dibujo */
+  aspect-ratio: 640 / 205; /* la proporción del dibujo "Rumbo a Ludwig" */
   min-height: 0;
   padding: 0;
   border: none;
@@ -144,9 +143,26 @@
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.6s ease; /* crece con un pequeño rebote */
 }
 
-/* El dibujo va en la capa de atrás (::before) */
+/* Los dos dibujos, uno encima del otro: "Rumbo" atrás (::before) y "Conocer" delante (::after).
+   El de "Conocer" es un poco más alto: "contain" lo encaja entero, centrado */
 .viaje[data-tema="ludwig"] .viaje__placa::before {
-  background: var(--dibujo-placa) center / 100% 100% no-repeat;
+  background: url("../img/placas/ludwig.webp") center / 100% 100% no-repeat;
+  transition: opacity 0.3s ease 0.1s;
+}
+
+.viaje[data-tema="ludwig"] .viaje__placa::after {
+  z-index: 0;
+  background: url("../img/placas/ludwig-activa.webp") center / contain no-repeat;
+  opacity: 0;
+  transition: opacity 0.3s ease 0.1s; /* se cruzan justo cuando saltan las chispas */
+}
+
+.viaje[data-tema="ludwig"][data-estado="activa"] .viaje__placa::before {
+  opacity: 0;
+}
+
+.viaje[data-tema="ludwig"][data-estado="activa"] .viaje__placa::after {
+  opacity: 1;
 }
 
 /* Mientras los píxeles la arman, el dibujo lo pinta el lienzo (js/placa-ludwig.js) */
@@ -164,18 +180,23 @@
   white-space: nowrap;
 }
 
-/* El lienzo de los píxeles: más grande que la placa, porque la espiral sale por fuera */
+/* El lienzo de los píxeles: mucho más grande que la placa, porque la espiral y las chispas
+   salen por fuera. Va por encima de los dibujos para que las chispas se vean delante */
 .viaje__pixeles {
   display: none;
+}
+
+.viaje[data-tema="ludwig"] .viaje__lienzo {
+  z-index: 3;
 }
 
 .viaje[data-tema="ludwig"] .viaje__pixeles {
   display: block;
   position: absolute;
-  left: -22%;
-  top: -22%;
-  width: 144%;
-  height: 144%;
+  left: -30%;
+  top: -80%;
+  width: 160%;
+  height: 260%;
 }
 
 /* Activarse: crece un poco y brilla con el rojo de los ojos del dragón.
@@ -184,31 +205,6 @@
   transform: scale(1.1);
   box-shadow: none;
   filter: drop-shadow(0 0 0.5rem var(--placa-brillo));
-}
-
-/* El reflejo de cromo: dos franjas de luz que cruzan el dibujo.
-   La máscara es el propio dibujo: así la luz solo toca el metal, no el aire de alrededor */
-.viaje[data-tema="ludwig"] .viaje__placa::after {
-  /* El degradado mide 3 placas de ancho y las franjas van en su centro:
-     con background-position 100% quedan fuera por la izquierda y con 0% fuera por la derecha */
-  background: linear-gradient(105deg,
-      transparent 44%,
-      rgba(255, 255, 255, 0.9) 48%, transparent 51%,  /* franja ancha */
-      rgba(210, 225, 255, 0.8) 54%, transparent 56%,  /* franja fina, algo azulada como el cromo */
-      transparent 100%)
-    0 0 / 300% 100% no-repeat;
-  background-position: 0% 0; /* al final, las franjas se han ido por la derecha */
-  mix-blend-mode: screen;      /* aclara el metal oscuro, sin tapar el dibujo */
-  -webkit-mask: var(--dibujo-placa) center / 100% 100% no-repeat;
-  mask: var(--dibujo-placa) center / 100% 100% no-repeat;
-}
-
-.viaje[data-tema="ludwig"][data-estado="activa"] .viaje__placa::after {
-  animation: ludwig-cromo 1.4s ease-in-out 0.15s both;
-}
-
-@keyframes ludwig-cromo {
-  from { background-position: 100% 0; } /* empiezan fuera, por la izquierda */
 }
 
 /* ----- Con "reducir movimiento": sin animaciones, solo el cambio de estado ----- */
