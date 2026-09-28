@@ -68,8 +68,10 @@
   cursor: pointer;
 }
 
+/* El contorno va por FUERA de la placa, sobre el fondo oscuro de la página:
+   por eso usa el texto claro de la página y no el de la placa (el de Ludwig es casi negro) */
 .viaje__placa:focus-visible {
-  outline: 2px solid var(--placa-texto);
+  outline: 2px solid var(--color-texto);
   outline-offset: 3px;
 }
 

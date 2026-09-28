@@ -137,4 +137,21 @@ document.addEventListener("keydown", (evento) => {
 // La barra está dentro de la órbita: que pulsarla no empiece a arrastrar los planetas (orbita.js)
 barra.addEventListener("pointerdown", (evento) => evento.stopPropagation());
 
+// ----- Teclado -----
+// Con Tab, al salir de un planeta se pasa al siguiente, y eso cambiaría la placa antes de llegar
+// a ella. Por eso: si la placa está activa y tiene página, Tab en su destino salta a la placa;
+// desde la placa, Tab va al destino siguiente y Shift+Tab vuelve al suyo
+document.addEventListener("keydown", (evento) => {
+  if (evento.key !== "Tab" || estado !== "activa" || !placa.hasAttribute("href")) return;
+  if (!evento.shiftKey && document.activeElement === actual) {
+    evento.preventDefault();
+    placa.focus();
+  } else if (document.activeElement === placa) {
+    const siguiente = evento.shiftKey ? actual : destinos[destinos.indexOf(actual) + 1];
+    if (!siguiente) return; // era el último destino: Tab sigue su camino normal
+    evento.preventDefault();
+    siguiente.focus();
+  }
+});
+
 })();
