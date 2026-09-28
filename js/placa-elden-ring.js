@@ -10,9 +10,11 @@
 //    Como la placa es alargada, los círculos van en FILA (no en cruz): simétricos,
 //    sin línea vertical ni arcos, así no se parece al logo del juego.
 //
-// 2. SE ACTIVA DESHACIÉNDOSE EN CENIZA DORADA: cuando el dragón se posa, el dibujo
-//    viejo se deshace a manchas con un borde de brasa, suelta ceniza de oro que sube
-//    (como los enemigos al morir en el juego) y debajo queda "Conocer Death".
+// 2. SE ACTIVA CON LA QUEMADURA DE LA MUERTE: cuando el dragón se posa, un golpe
+//    de fuego rojo sacude la placa. El dibujo viejo se chamusca (se ennegrece),
+//    arde a manchas con un borde rojo vivo, suben lenguas de fuego rojo y negro
+//    (como el aura de la espada de la carta), escamas de ceniza negra y brasas.
+//    Debajo queda "Conocer Death".
 //
 // Este archivo no toca la barra: solo MIRA sus atributos (data-tema, data-estado)
 // y pinta en su lienzo. Mientras pinta, pone data-elden-pintando en la barra
@@ -47,15 +49,20 @@ const FILA = [
   { x: 0.42, r: 0.21, sale: 0.33, llega: 0.47 },
 ];
 
-// ----- Ajustes de la activación (la ceniza dorada) -----
-const DURACION_CAMBIO = 1.4;   // segundos que dura
-const DESHACER = 0.65;         // parte del tiempo que tarda el dibujo viejo en deshacerse
-const CELDA = 3;               // tamaño (px) de los trocitos en los que se deshace
-const MANCHAS = 9;             // tamaño de las manchas (en celdas): más = manchas más grandes
-const BORDE = 0.07;            // grosor del borde de brasa (en "tiempo" de deshacerse)
-const CENIZA = 0.22;           // parte de los trocitos que sueltan una mota de ceniza
-const CENIZA_SUBE = 1.1;       // cuánto sube la ceniza (en altos de placa)
-const COLOR_CENIZA = "205, 190, 170"; // gris claro, casi pergamino
+// ----- Ajustes de la activación (la quemadura de la muerte) -----
+const DURACION_CAMBIO = 1.5;   // segundos que dura
+const DESHACER = 0.62;         // parte del tiempo que tarda el dibujo viejo en quemarse
+const CELDA = 3;               // tamaño (px) de los trocitos en los que se quema
+const MANCHAS = 7;             // tamaño de las manchas (en celdas): más = manchas más grandes
+const BORDE = 0.09;            // grosor del borde en llamas (en "tiempo" de quemarse)
+const CHAMUSCAR = 0.3;         // lo que se ennegrece el dibujo por delante del fuego (en "tiempo")
+const LENGUAS = 32;            // lenguas de fuego que suben de la quemadura
+const CENIZA = 0.3;            // parte de los trocitos que sueltan ceniza negra o una brasa
+const CENIZA_SUBE = 1.3;       // cuánto sube la ceniza (en altos de placa)
+const TEMBLOR = 2;             // píxeles que tiembla la placa mientras arde
+const COLOR_MUERTE = "226, 66, 42";    // el rojo de las llamas de la espada de la carta
+const COLOR_SANGRE = "120, 14, 8";     // rojo oscuro, casi negro
+const COLOR_NEGRO = "14, 7, 5";        // el negro de la carta (un poco cálido)
 
 // La parte de la placa con dibujo (sin las puntas de las estrellas), de 0 a 1
 const CUERPO = { x0: 0.036, x1: 0.964, y0: 0.2, y1: 0.77 };
@@ -417,15 +424,17 @@ function dibujarHechizo(progreso) {
 }
 
 // =========================================================
-// 2. LA ACTIVACIÓN: el dibujo viejo se deshace en ceniza dorada
+// 2. LA ACTIVACIÓN: la quemadura de la muerte
 // =========================================================
 // Idea clave: cada trocito (celda) tiene un "umbral" entre 0 y 1. Un número, el
-// avance, sube de 0 a 1: las celdas con umbral menor que el avance ya se deshicieron
-// (se ve el dibujo nuevo), y las que están justo por encima forman el borde de brasa.
+// avance, sube de 0 a 1: las celdas con umbral menor que el avance ya se quemaron
+// (se ve el dibujo nuevo). Justo por encima está el borde en llamas, y un poco más
+// allá la zona chamuscada, que se va ennegreciendo antes de que llegue el fuego.
 // Los umbrales salen de un "ruido suave" (valores al azar en una rejilla gruesa,
-// mezclados entre vecinos): así se deshace a manchas y no a puntitos sueltos.
+// mezclados entre vecinos): así se quema a manchas y no a puntitos sueltos.
 let celdas = [];
 let cenizas = [];
+let lenguas = [];
 
 function prepararCeniza() {
   const azar = Math.random; // cada activación, manchas distintas
@@ -447,28 +456,28 @@ function prepararCeniza() {
 
   celdas = [];
   cenizas = [];
+  const enElCuerpo = []; // celdas del cuerpo de la placa: de ellas salen las lenguas de fuego
   for (let fila = 0; fila < filas; fila++) {
     for (let col = 0; col < columnas; col++) {
-      // Manchas (ruido) + un poco de azar para que el borde sea irregular
       const umbral = 0.9 * ruido(col, fila) + 0.1 * azar();
       const x = placaX + col * CELDA;
       const y = placaY + fila * CELDA;
-      celdas.push({ x, y, umbral });
+      const celda = { x, y, umbral };
+      celdas.push(celda);
       // Solo sueltan ceniza las celdas del cuerpo de la placa (no el aire de alrededor)
       const fx = (col + 0.5) / columnas, fy = (fila + 0.5) / filas;
-      const enCuerpo = fx > CUERPO.x0 && fx < CUERPO.x1 && fy > CUERPO.y0 && fy < CUERPO.y1;
-      if (enCuerpo && azar() < CENIZA) {
-        const tipo = azar();
+      if (!(fx > CUERPO.x0 && fx < CUERPO.x1 && fy > CUERPO.y0 && fy < CUERPO.y1)) continue;
+      enElCuerpo.push(celda);
+      if (azar() < CENIZA) {
+        const negra = azar() < 0.65; // casi todo escamas negras; el resto, brasas rojas
         cenizas.push({
-          x: x + CELDA / 2,
-          y: y + CELDA / 2,
-          umbral,
-          vida: 0.4 + azar() * 0.3,                          // segundos
+          celda,
+          vida: 0.45 + azar() * 0.35,                          // segundos
           sube: placaH * CENIZA_SUBE * (0.5 + azar() * 0.5),
-          viento: placaH * (0.1 + azar() * 0.35),            // se la lleva un poco a la derecha
+          viento: placaH * (0.1 + azar() * 0.4),               // se la lleva un poco a la derecha
           fase: azar() * 6.3,
-          tam: 1 + azar() * 1.5,
-          color: tipo < 0.55 ? COLOR_ORO : tipo < 0.85 ? COLOR_CENIZA : COLOR_BRASA,
+          tam: negra ? 1.5 + azar() * 2.5 : 1 + azar() * 1.2,  // las escamas, más grandes
+          negra,
         });
       }
     }
@@ -476,68 +485,158 @@ function prepararCeniza() {
   // Los umbrales van de 0 a 1 de verdad (el ruido nunca llega del todo a los extremos)
   let menor = Infinity, mayor = -Infinity;
   for (const c of celdas) { menor = Math.min(menor, c.umbral); mayor = Math.max(mayor, c.umbral); }
-  const normalizar = (u) => (u - menor) / (mayor - menor || 1);
-  for (const c of celdas) c.umbral = normalizar(c.umbral);
-  for (const c of cenizas) c.umbral = normalizar(c.umbral);
+  for (const c of celdas) c.umbral = (c.umbral - menor) / (mayor - menor || 1);
+
+  // Las lenguas de fuego: cada una sale de una celda del cuerpo cuando esa celda arde
+  lenguas = Array.from({ length: LENGUAS }, () => ({
+    celda: enElCuerpo[Math.floor(azar() * enElCuerpo.length)],
+    vida: 0.3 + azar() * 0.25,
+    alto: placaH * (0.7 + azar() * 0.9),
+    ancho: 3 + azar() * 4,
+    fase: azar() * 6.3,
+    ondas: 1.5 + azar() * 1.5,
+  }));
+}
+
+// Pinta en la capa de luces un dibujo teñido de un color y lo suma al lienzo
+function tenirRojo(img, dx, dy, fuerza) {
+  if (fuerza <= 0) return;
+  lucesCtx.clearRect(0, 0, ancho, alto);
+  lucesCtx.drawImage(img, placaX + dx, placaY + dy, placaW, placaH);
+  lucesCtx.globalCompositeOperation = "source-in"; // el rojo solo donde hay dibujo
+  lucesCtx.fillStyle = `rgb(${COLOR_MUERTE})`;
+  lucesCtx.fillRect(0, 0, ancho, alto);
+  lucesCtx.globalCompositeOperation = "source-over";
+  ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = fuerza;
+  ctx.drawImage(luces, 0, 0, ancho, alto);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+}
+
+// Una lengua de fuego: sube desde (x, y) ondulando, ancha abajo y en punta arriba.
+// Dos pasadas: el rojo de fuera (luz, "lighter") y un corazón negro dentro, como el aura de la espada
+function trazarLengua(l, x, y, q) {
+  // Crece y luego se encoge; nunca más alta que el hueco hasta el borde de arriba del lienzo
+  const alto = Math.min(l.alto, y - 6) * Math.sin(Math.PI * Math.min(1, q * 1.3));
+  if (alto < 2) return;
+  const puntos = [];
+  for (let i = 0; i <= 12; i++) {
+    const f = i / 12; // 0 = base, 1 = punta
+    const vaiven = Math.sin(f * Math.PI * l.ondas - q * 9 + l.fase) * placaH * 0.12 * f;
+    puntos.push([x + vaiven, y - alto * f, l.ancho * (1 - f) * (1 - q * 0.5)]);
+  }
+  const trazar = (escala) => {
+    const camino = new Path2D();
+    camino.moveTo(puntos[0][0] - puntos[0][2] * escala, puntos[0][1]);
+    for (const [px, py, g] of puntos) camino.lineTo(px - g * escala, py);
+    for (let i = puntos.length - 1; i >= 0; i--) camino.lineTo(puntos[i][0] + puntos[i][2] * escala, puntos[i][1]);
+    camino.closePath();
+    return camino;
+  };
+  const degradado = ctx.createLinearGradient(x, y, x, y - alto);
+  degradado.addColorStop(0, `rgba(${COLOR_MUERTE}, ${1 - q * 0.8})`);
+  degradado.addColorStop(0.6, `rgba(${COLOR_MUERTE}, ${0.65 * (1 - q)})`);
+  degradado.addColorStop(1, `rgba(${COLOR_SANGRE}, 0)`);
+  ctx.globalCompositeOperation = "lighter";
+  ctx.fillStyle = degradado;
+  ctx.fill(trazar(1));
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = `rgba(${COLOR_NEGRO}, ${0.7 * (1 - q)})`;
+  ctx.fill(trazar(0.35));
 }
 
 function dibujarCeniza(segundos) {
   ctx.clearRect(0, 0, ancho, alto);
+  const tiempoQuemar = DURACION_CAMBIO * DESHACER;
+  const q = limitar(segundos / tiempoQuemar);
   // El avance recorre de -BORDE a 1: al final ya no queda ni el borde
-  const avance = -BORDE + (1 + BORDE) * suave(limitar(segundos / (DURACION_CAMBIO * DESHACER)));
+  const avance = -BORDE + (1 + BORDE) * suave(q);
+  // Tiembla mientras arde, más fuerte en medio de la quemadura
+  const fuerza = Math.sin(Math.PI * q);
+  const dx = Math.sin(segundos * 73) * TEMBLOR * fuerza;
+  const dy = Math.cos(segundos * 57) * TEMBLOR * 0.6 * fuerza;
 
   // 1. El dibujo nuevo debajo, entero
-  ctx.drawImage(dibujoActivo, placaX, placaY, placaW, placaH);
+  ctx.drawImage(dibujoActivo, placaX + dx, placaY + dy, placaW, placaH);
 
-  // 2. Encima, el viejo, solo en las celdas que aún no se han deshecho;
-  //    y en su capa de luces, las del borde (umbral justo por encima del avance):
-  //    la mitad pegada al avance arde en oro y la de detrás en rojo brasa
+  // 2. Encima, el viejo, solo en las celdas que aún no se han quemado. Las que están
+  //    en la zona chamuscada se ennegrecen (más cuanto más cerca del fuego), en 3 tonos
   const quedan = new Path2D();
-  const oro = new Path2D();
-  const brasa = new Path2D();
+  const chamusco = [new Path2D(), new Path2D(), new Path2D()];
+  const vivo = new Path2D();   // el borde pegado al avance: rojo vivo
+  const oscuro = new Path2D(); // detrás: rojo oscuro
   for (const c of celdas) {
     if (c.umbral <= avance) continue;
-    quedan.rect(c.x, c.y, CELDA, CELDA);
-    if (c.umbral < avance + BORDE / 2) oro.rect(c.x, c.y, CELDA, CELDA);
-    else if (c.umbral < avance + BORDE) brasa.rect(c.x, c.y, CELDA, CELDA);
+    quedan.rect(c.x + dx, c.y + dy, CELDA, CELDA);
+    const d = c.umbral - avance; // lo lejos que está del fuego
+    if (d < BORDE * 0.45) vivo.rect(c.x + dx, c.y + dy, CELDA, CELDA);
+    else if (d < BORDE) oscuro.rect(c.x + dx, c.y + dy, CELDA, CELDA);
+    const negro = 1 - (d - BORDE * 0.45) / CHAMUSCAR; // 1 junto al fuego, 0 lejos
+    if (negro > 0) chamusco[Math.min(2, Math.floor(negro * 3))].rect(c.x + dx, c.y + dy, CELDA, CELDA);
   }
   capaCtx.clearRect(0, 0, ancho, alto);
   capaCtx.fillStyle = "#fff";
   capaCtx.fill(quedan);
   capaCtx.globalCompositeOperation = "source-in";
-  capaCtx.drawImage(dibujo, placaX, placaY, placaW, placaH);
+  capaCtx.drawImage(dibujo, placaX + dx, placaY + dy, placaW, placaH);
+  // source-atop: el negro solo cae encima del dibujo, nunca en el aire
+  capaCtx.globalCompositeOperation = "source-atop";
+  chamusco.forEach((zona, i) => {
+    capaCtx.fillStyle = `rgba(${COLOR_NEGRO}, ${0.45 + i * 0.25})`;
+    capaCtx.fill(zona);
+  });
   capaCtx.globalCompositeOperation = "source-over";
   ctx.drawImage(capa, 0, 0, ancho, alto);
 
-  // El borde brilla, pero solo donde el dibujo viejo tiene algo
-  // (destination-in con el dibujo: nada de brasas flotando en el aire)
+  // 3. El borde en llamas: rojo vivo pegado al fuego y rojo oscuro detrás,
+  //    solo donde el dibujo viejo tiene algo (destination-in: nada ardiendo en el aire)
   lucesCtx.clearRect(0, 0, ancho, alto);
-  lucesCtx.fillStyle = `rgba(${COLOR_BRASA}, 0.8)`;
-  lucesCtx.fill(brasa);
-  lucesCtx.fillStyle = `rgba(${COLOR_ORO}, 0.9)`;
-  lucesCtx.fill(oro);
+  lucesCtx.fillStyle = `rgba(${COLOR_SANGRE}, 0.9)`;
+  lucesCtx.fill(oscuro);
+  lucesCtx.fillStyle = `rgba(${COLOR_MUERTE}, 1)`;
+  lucesCtx.fill(vivo);
   lucesCtx.globalCompositeOperation = "destination-in";
-  lucesCtx.drawImage(dibujo, placaX, placaY, placaW, placaH);
+  lucesCtx.drawImage(dibujo, placaX + dx, placaY + dy, placaW, placaH);
   lucesCtx.globalCompositeOperation = "source-over";
   ctx.globalCompositeOperation = "lighter";
   ctx.drawImage(luces, 0, 0, ancho, alto);
-
-  // 3. La ceniza: cada mota sale cuando se deshace su celda, sube meciéndose,
-  //    el viento la lleva a la derecha y se apaga
-  const tiempoDeshacer = DURACION_CAMBIO * DESHACER;
-  for (const m of cenizas) {
-    // En qué segundo se deshizo su celda
-    const nace = momentoDeAvance(m.umbral) * tiempoDeshacer;
-    const vida = Math.min(m.vida, DURACION_CAMBIO - nace - 0.02); // que se apague antes del final
-    const q = (segundos - nace) / vida;
-    if (q <= 0 || q >= 1) continue;
-    const x = m.x + m.viento * frenar(q) + Math.sin(q * 6 + m.fase) * placaH * 0.04;
-    const y = m.y - m.sube * frenar(q);
-    const tam = m.tam * (1 - 0.5 * q);
-    ctx.fillStyle = `rgba(${m.color}, ${(1 - q) * Math.min(1, q * 8)})`;
-    ctx.fillRect(x - tam / 2, y - tam / 2, tam, tam);
-  }
   ctx.globalCompositeOperation = "source-over";
+
+  // 4. El golpe del principio: la placa entera se enciende en rojo un instante
+  tenirRojo(dibujo, dx, dy, 0.7 * (1 - tramo(segundos, 0.03, 0.25)) * tramo(segundos, 0, 0.03));
+
+  // 5. Las lenguas de fuego: salen de su celda cuando arde y suben ondulando
+  for (const l of lenguas) {
+    const nace = momentoDeAvance(l.celda.umbral) * tiempoQuemar;
+    const vida = Math.min(l.vida, DURACION_CAMBIO - nace - 0.02);
+    const edad = (segundos - nace) / vida;
+    if (edad <= 0 || edad >= 1) continue;
+    trazarLengua(l, l.celda.x + CELDA / 2 + dx, l.celda.y + CELDA / 2 + dy, edad);
+  }
+
+  // 6. La ceniza: escamas negras que suben girando y brasas rojas que se apagan
+  for (const m of cenizas) {
+    const nace = momentoDeAvance(m.celda.umbral) * tiempoQuemar;
+    const vida = Math.min(m.vida, DURACION_CAMBIO - nace - 0.02); // que se apague antes del final
+    const e = (segundos - nace) / vida;
+    if (e <= 0 || e >= 1) continue;
+    const x = m.celda.x + m.viento * frenar(e) + Math.sin(e * 6 + m.fase) * placaH * 0.05;
+    const y = m.celda.y - m.sube * frenar(e);
+    // Aparece de golpe, se apaga poco a poco y se desvanece antes de tocar el borde de arriba
+    const alfa = (1 - e) * Math.min(1, e * 8) * limitar((y - 4) / 24);
+    if (m.negra) {
+      // Una escama: un cuadrito que se aplasta al girar (su alto cambia con un seno)
+      const giro = Math.abs(Math.sin(e * 10 + m.fase));
+      ctx.fillStyle = `rgba(${COLOR_NEGRO}, ${alfa})`;
+      ctx.fillRect(x - m.tam / 2, y - (m.tam * giro) / 2, m.tam, Math.max(0.6, m.tam * giro));
+    } else {
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = `rgba(${COLOR_MUERTE}, ${alfa})`;
+      ctx.fillRect(x - m.tam / 2, y - m.tam / 2, m.tam, m.tam);
+      ctx.globalCompositeOperation = "source-over";
+    }
+  }
 }
 
 // El momento (de 0 a 1 del tiempo de deshacerse) en que el avance pasa por un umbral.
