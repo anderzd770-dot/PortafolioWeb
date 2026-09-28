@@ -43,6 +43,12 @@
    ¡Prueba a cambiarlo! (1 = igual que el círculo, 1.7 = como el agujero negro) */
 .planeta--ocarina {
   --tamano-arte: 1.83;
+  /* Zona para apuntar (ver inicio.css): el mismo sitio que la imagen y su silueta */
+  --zona-izq: calc(50% - 53.3% * var(--tamano-arte));
+  --zona-arriba: calc(100% - 134.3% * var(--tamano-arte));
+  --zona-ancho: calc(105.3% * var(--tamano-arte));
+  --zona-proporcion: 512 / 656;
+  --zona-forma: polygon(0.8% 47.3%, 5.1% 35.4%, 10.5% 21.6%, 18.4% 14.6%, 23.0% 11.3%, 35.2% 4.3%, 39.5% 2.4%, 75.4% 2.4%, 82.8% 6.7%, 84.4% 7.9%, 96.9% 29.0%, 98.8% 37.2%, 100.0% 57.0%, 98.4% 62.5%, 87.5% 98.8%, 27.3% 99.7%, 6.6% 72.9%, 5.1% 68.3%, 2.3% 58.5%, 0.8% 49.4%);
 }
 
 .planeta--ocarina .planeta__arte {

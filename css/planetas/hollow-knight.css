@@ -40,6 +40,12 @@
    ¡Prueba a cambiarlo! (1 = igual que el círculo, 1.4 = mucho más grande) */
 .planeta--hollow-knight {
   --tamano-arte: 1.63;
+  /* Zona para apuntar (ver inicio.css): el mismo sitio que la imagen y su silueta */
+  --zona-izq: calc(50% - 80% * var(--tamano-arte));
+  --zona-arriba: calc(100% - 140.6% * var(--tamano-arte));
+  --zona-ancho: calc(160% * var(--tamano-arte));
+  --zona-proporcion: 1;
+  --zona-forma: polygon(10.5% 44.5%, 26.6% 12.5%, 50.8% 4.7%, 55.5% 4.3%, 71.9% 16.8%, 87.9% 37.9%, 88.3% 38.7%, 89.1% 61.3%, 79.7% 76.6%, 71.9% 86.7%, 70.7% 87.5%, 54.7% 87.9%, 45.7% 87.9%, 40.2% 86.7%, 34.8% 84.4%, 30.1% 81.3%, 25.4% 76.6%, 23.4% 73.8%, 20.7% 68.4%, 10.9% 47.7%);
 }
 
 .planeta--hollow-knight .planeta__arte {

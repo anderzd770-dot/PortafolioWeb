@@ -148,6 +148,36 @@
   opacity: 1;
 }
 
+/* La caja del dragón posado: el dibujo + el lienzo de luz encima (js/dragon-posado.js).
+   Con el ratón encima del dibujo (y mientras despierta al posarse) crece un 7 % con el
+   mismo rebote que la Z del agujero, desde abajo para no chocar con la placa */
+.viaje__posado {
+  position: relative;
+  display: block;
+  transform-origin: 50% 100%;
+  transition: scale 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.viaje__posado--despierto {
+  scale: 1.07;
+}
+
+.viaje__posado--encima {
+  scale: 1.07;
+  pointer-events: auto; /* solo mientras tocas el dibujo: así el clic es del dragón y no del planeta de detrás */
+}
+
+/* El lienzo sobresale --margen-luz por cada lado: ahí caben las chispas del clic */
+.viaje__luz {
+  --margen-luz: 40px;
+
+  position: absolute;
+  inset: calc(var(--margen-luz) * -1);
+  width: calc(100% + var(--margen-luz) * 2);
+  height: calc(100% + var(--margen-luz) * 2);
+  pointer-events: none;
+}
+
 /* ----- Placa de Ludwig (la Z-dragón): TUS DIBUJOS (img/placas/) -----
    Esperando: ludwig.webp ("Rumbo a Ludwig"). Activa: ludwig-activa.webp ("Conocer a Ludwig").
    Los dibujos ya llevan el texto y el marco, así que aquí la placa no tiene fondo ni borde.

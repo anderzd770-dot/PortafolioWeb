@@ -42,6 +42,12 @@
    ¡Prueba a cambiarlo! (1.44 = igual que Hollow Knight, 1.7 = como el agujero) */
 .planeta--cyberpunk {
   --tamano-arte: 2.2;
+  /* Zona para apuntar (ver inicio.css): el mismo sitio que la imagen y su silueta */
+  --zona-izq: calc(50% - 58% * var(--tamano-arte));
+  --zona-arriba: calc(100% - 120.5% * var(--tamano-arte));
+  --zona-ancho: calc(116% * var(--tamano-arte));
+  --zona-proporcion: 512 / 532;
+  --zona-forma: polygon(0.8% 50.8%, 3.9% 40.2%, 9.8% 21.4%, 10.2% 21.1%, 40.6% 2.6%, 48.8% 0.4%, 51.2% 0.4%, 70.3% 10.5%, 96.1% 28.9%, 97.7% 45.1%, 95.7% 67.7%, 91.8% 74.4%, 77.3% 89.5%, 73.4% 92.1%, 64.8% 96.6%, 50.0% 98.5%, 44.9% 97.4%, 24.6% 91.7%, 4.3% 74.4%, 2.7% 66.5%);
 }
 
 .planeta--cyberpunk .planeta__arte {

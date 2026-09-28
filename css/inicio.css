@@ -627,9 +627,14 @@ button.planeta__enlace {
   transform: scale(1.08);
 }
 
-.planeta__enlace:focus-visible .planeta__esfera {
-  outline: 2px solid var(--color-acento);
-  outline-offset: 8px;
+/* Contorno del teclado (Tab): sigue la silueta del dibujo, no un círculo.
+   Truco: cuatro sombras sin difuminar, movidas 2 px arriba, abajo y a los
+   lados, dibujan un borde alrededor de la forma (drop-shadow sigue la forma). */
+.orbita .planeta__enlace:focus-visible .planeta__esfera {
+  outline: none;
+  filter:
+    drop-shadow(2px 0 0 var(--color-acento)) drop-shadow(-2px 0 0 var(--color-acento))
+    drop-shadow(0 2px 0 var(--color-acento)) drop-shadow(0 -2px 0 var(--color-acento));
 }
 
 /* El nombre (y "Próximamente") no se ve: los dibujos ya dicen qué mundo es.
@@ -748,6 +753,53 @@ button.planeta__enlace {
   cursor: pointer;
 }
 
+/* ----- Zona para apuntar a cada planeta -----
+   Los dibujos son mucho más grandes que el círculo del planeta y no
+   reciben el ratón (pointer-events: none), así que antes solo contaba
+   el círculo: apuntar a la copa de un árbol o a un castillo no hacía nada.
+   Ahora el círculo tampoco recibe el ratón: lo recibe una capa invisible
+   (::before) puesta EXACTAMENTE donde está el dibujo y recortada con su
+   silueta (clip-path también decide dónde "toca" el ratón).
+   Cada planeta pone en su CSS dónde va (--zona-izq, --zona-arriba,
+   --zona-ancho: lo mismo que su .planeta__arte), la proporción de su
+   imagen (--zona-proporcion) y su silueta (--zona-forma).
+   Va dentro de la esfera: al apuntar crece con ella, y así el ratón
+   no "rebota" en el borde. */
+.orbita--viva .planeta,
+.orbita--viva .planeta__enlace,
+.orbita--viva .planeta__esfera {
+  pointer-events: none;
+}
+
+.orbita--viva .planeta__esfera::before {
+  content: "";
+  position: absolute;
+  left: var(--zona-izq, 0%);
+  top: var(--zona-arriba, 0%);
+  width: var(--zona-ancho, 100%);
+  aspect-ratio: var(--zona-proporcion, 1);
+  clip-path: var(--zona-forma, ellipse(50% 50%));
+  pointer-events: auto; /* la única parte del planeta que recibe el ratón */
+}
+
+/* ----- Clic: cambiar a la otra imagen (js/planeta-clic.js) -----
+   Con el ratón encima, cada clic pone o quita .planeta--cambiado.
+   Con ella se ve la imagen normal (la "dormida") aunque el planeta siga
+   apuntado y grande. Al quitar el ratón, el JS la quita.
+   Estas reglas ganan a las de cada planeta porque son más específicas
+   (.orbita .planeta.planeta--cambiado suma más clases). */
+.orbita .planeta.planeta--cambiado .planeta__enlace:hover .planeta__arte--dormido {
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.orbita .planeta.planeta--cambiado .planeta__enlace:hover .planeta__arte--luz,
+.orbita .planeta.planeta--cambiado .planeta__enlace:hover .planeta__arte--corte {
+  opacity: 0;
+  animation: none;
+  transition: opacity 0.3s ease;
+}
+
 /* ----- Dragón que vuela por abajo (js/dragon-vuelo.js) ----- */
 /* Una franja pegada al fondo de la órbita, justo encima del pie.
    Su tamaño sale de --alto-dragon-vuelo (en .orbita) */
@@ -759,6 +811,15 @@ button.planeta__enlace {
   height: calc(var(--alto-dragon-vuelo) * 2.4); /* sitio para las ondas y la subida */
   z-index: 5; /* los planetas van de 10 a 90 (orbita.js): el dragón pasa por detrás */
   pointer-events: none; /* los clics lo atraviesan */
+}
+
+/* El número en píxeles que sale detrás de su cola con cada impulso (el % primo del camino).
+   Va por encima de los planetas y de la placa para que siempre se lea */
+.dragon-vuelo__numero {
+  position: absolute;
+  z-index: 96; /* la barra de viaje tiene 95 */
+  pointer-events: none;
+  image-rendering: pixelated; /* los píxeles de las cifras, cuadrados y nítidos */
 }
 
 /* ----- Móvil ----- */
