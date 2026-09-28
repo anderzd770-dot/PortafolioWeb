@@ -32,9 +32,13 @@
   box-shadow: none;
 }
 
-/* El anillo dibujado con CSS de antes ya no hace falta */
-.planeta--outer-wilds .planeta__esfera::before {
-  display: none;
+/* Zona para apuntar (ver inicio.css): el mismo sitio que la imagen y su silueta */
+.planeta--outer-wilds {
+  --zona-izq: calc(50% - 63.5% * var(--tamano-arte));
+  --zona-arriba: calc(100% - 135.7% * var(--tamano-arte));
+  --zona-ancho: calc(127.1% * var(--tamano-arte));
+  --zona-proporcion: 512 / 593;
+  --zona-forma: polygon(9.0% 52.4%, 10.2% 33.4%, 18.4% 14.5%, 31.6% 2.4%, 66.0% 11.1%, 86.7% 29.1%, 92.2% 59.1%, 91.4% 65.9%, 82.8% 78.0%, 75.8% 84.8%, 70.7% 87.8%, 66.0% 89.9%, 60.2% 91.6%, 52.3% 92.6%, 42.2% 91.9%, 34.8% 89.9%, 25.4% 85.8%, 18.0% 78.7%, 10.5% 69.6%, 9.4% 64.2%);
 }
 
 /* ----- Colocar el planeta sobre la esfera -----
@@ -136,6 +140,17 @@
 .planeta--outer-wilds .planeta__enlace:hover :is(.luna, .luna__lado, .luna__arte),
 .planeta--outer-wilds .planeta__enlace:focus-visible :is(.luna, .luna__lado, .luna__arte) {
   animation-play-state: running;
+}
+
+/* Clic (js/planeta-clic.js): este planeta no tiene otra imagen, así que
+   su "estado normal" es sin luna y sin brillo. Otro clic los devuelve. */
+.orbita .planeta--outer-wilds.planeta--cambiado .planeta__enlace:hover .luna {
+  opacity: 0;
+  transition-duration: 0.4s;
+}
+
+.orbita .planeta--outer-wilds.planeta--cambiado .planeta__enlace:hover .planeta__arte {
+  filter: none;
 }
 
 /* Media vuelta delante (0% → 50%) y media detrás (50% → 100%) */

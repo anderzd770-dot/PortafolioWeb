@@ -6,8 +6,9 @@
   <title>Ludwig — Portafolio de mundos</title>
   <meta name="description" content="Portafolio de Ludwig: los mundos de videojuegos que me inspiran a crear juegos.">
 
-  <!-- Icono de la pestaña: tu dibujo del dragón sobre un círculo oscuro -->
-  <link rel="icon" href="img/favicon.png" type="image/png">
+  <!-- Icono de la pestaña: tu dragón-Z de píxeles con el ojo rojo (128 × 128).
+       "?v=2" obliga al navegador a descargar el icono nuevo en vez de usar el viejo guardado -->
+  <link rel="icon" href="img/favicon.png?v=2" type="image/png">
 
   <!-- Tipografía (Google Fonts): Space Grotesk para todo el sitio y Grenze para la carta
        (y para el título si el JavaScript no carga) -->
@@ -311,8 +312,12 @@
           <span class="viaje__lienzo" aria-hidden="true"></span> <!-- hueco para un lienzo propio más adelante -->
           <span class="viaje__texto"></span>
         </a>
-        <!-- Tu dibujo del dragón, quieto: es el mismo que vuela, así que al posarse no se nota el cambio -->
-        <img class="viaje__dragon" src="img/dragon-vuelo.webp" alt="" width="627" height="240" decoding="async" fetchpriority="low">
+        <!-- Tu dibujo del dragón, quieto: es el mismo que vuela, así que al posarse no se nota el cambio.
+             Al pasar el ratón despierta como la Z del agujero: la luz va en el lienzo de encima (js/dragon-posado.js) -->
+        <span class="viaje__posado">
+          <img class="viaje__dragon" src="img/dragon-vuelo.webp" alt="" width="627" height="240" decoding="async" fetchpriority="low">
+          <canvas class="viaje__luz" aria-hidden="true"></canvas>
+        </span>
         <!-- Lo que dice la placa, para lectores de pantalla -->
         <p class="viaje__aviso solo-lector" aria-live="polite"></p>
       </div>
@@ -430,16 +435,38 @@
     </div>
   </main>
 
-  <!-- ===== Pie ===== -->
+  <!-- ===== Pie: "horizonte de eventos" ===== -->
   <footer class="pie">
-    <p>© 2026 Ludwig</p>
-    <p>Portafolio personal y gratuito. Los nombres de los juegos pertenecen a sus respectivos estudios.</p>
+    <!-- Línea de cromo que fluye + píxeles que viajan por ella (solo decoración, css/global.css).
+         Cada píxel tiene su sitio (--x), tamaño (--tam), duración del viaje (--dur),
+         retraso (--retraso, negativo = ya va por la mitad al cargar) y sentido. -->
+    <div class="pie__horizonte" aria-hidden="true">
+      <span class="pie__pixel" style="--x: 7%;  --tam: 3px; --dur: 38s; --retraso: -6s"></span>
+      <span class="pie__pixel" style="--x: 23%; --tam: 2px; --dur: 24s; --retraso: -17s; --sentido: reverse"></span>
+      <span class="pie__pixel" style="--x: 41%; --tam: 2px; --dur: 31s; --retraso: -3s"></span>
+      <span class="pie__pixel" style="--x: 58%; --tam: 3px; --dur: 45s; --retraso: -29s; --sentido: reverse"></span>
+      <span class="pie__pixel" style="--x: 76%; --tam: 2px; --dur: 20s; --retraso: -11s"></span>
+      <span class="pie__pixel" style="--x: 91%; --tam: 2px; --dur: 34s; --retraso: -22s; --sentido: reverse"></span>
+    </div>
+
+    <!-- Quién hizo qué: lo más importante para un portafolio -->
+    <div class="pie__columna">
+      <p>© 2026 Ludwig · concepto, diseño, animaciones y código</p>
+      <p>Me apoyo en la IA para programar e ilustrar: yo dirijo, reviso y ajusto cada detalle</p>
+    </div>
+
+    <!-- Aviso legal de fan content + enlace al código -->
+    <div class="pie__columna pie__columna--legal">
+      <p>Proyecto de fans no oficial y gratuito, sin relación con ningún estudio</p>
+      <p>Nombres y marcas pertenecen a sus dueños · <a href="https://github.com/anderzd770-dot/PortafolioWeb">Código en GitHub</a></p>
+    </div>
   </footer>
 
   <script src="js/global.js" defer></script>
   <script src="js/titulo-silueta.js" defer></script> <!-- la forma de las letras (datos): antes que titulo.js -->
   <script src="js/titulo.js" defer></script>
   <script src="js/orbita.js" defer></script>
+  <script src="js/planeta-clic.js" defer></script> <!-- clic en un planeta: cambia de dibujo y se hunde como un botón -->
   <script src="js/agujero-negro.js" defer></script>
   <script src="js/fondo-estrellas.js" defer></script>
   <script src="js/carta.js" defer></script>
@@ -452,6 +479,7 @@
   <script src="js/carta-elden-ring.js" defer></script>
   <script src="js/dragon-vuelo.js" defer></script>
   <script src="js/barra-viaje.js" defer></script>
+  <script src="js/dragon-posado.js" defer></script> <!-- el dragón posado despierta al pasar el ratón -->
   <script src="js/placa-ludwig.js" defer></script> <!-- la placa de Ludwig se arma por píxeles -->
   <script src="js/placa-hollow-knight.js" defer></script> <!-- sombras y motas de alma -->
   <script src="js/placa-outer-wilds.js" defer></script> <!-- glifo al aparecer, luna cuántica al activarse -->

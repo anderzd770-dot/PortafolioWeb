@@ -10,6 +10,10 @@
 //   "dragon-despedir" → se desvanece donde esté
 //   "dragon-posado"   → lo envía él al llegar
 //
+// Impulso: cada clic en un planeta o en la Z mientras vuela lo acelera un momento,
+// así llega antes y la barra se activa antes. Detrás de su cola sale en píxeles
+// cuánto camino lleva (en %), redondeado al número primo anterior.
+//
 // Idea clave: el dibujo se corta en tiras verticales (de la cola a la cabeza).
 // La cabeza avanza por un camino con curvas y cada tira se coloca MÁS ATRÁS
 // en ese mismo camino, girada según la curva. El cuerpo nunca cambia de largo:
@@ -43,6 +47,16 @@ const RIGIDEZ_CABEZA = 0.8;     // 1 = la cabeza no se dobla nada · 0 = se dobl
 // Las tiras giran alrededor de esa línea, no del centro de la imagen
 const EJE = 0.64;
 
+// Impulso: cada clic en un planeta o en la Z mientras vuela lo acelera (y llega antes a la placa)
+const IMPULSO = 1.2;            // velocidad extra de cada clic (1.2 = +120 % de la normal)
+const IMPULSO_MAXIMO = 4;       // tope de velocidad extra (4 = como mucho 5 veces más rápido)
+const FRENO_IMPULSO = 2;        // qué rápido se pasa el impulso (más alto = se frena antes)
+// El número del impulso: cuánto camino lleva, en %, redondeado al número PRIMO anterior
+const PIXEL_NUMERO = 3;         // tamaño de cada píxel de las cifras, en píxeles de pantalla
+const SEPARACION_COLA = 8;      // hueco entre la punta de la cola y el número, en píxeles
+const SUBE_NUMERO = 26;         // cuánto sube el número mientras se desvanece, en píxeles
+const DURACION_NUMERO = 900;    // milisegundos que se ve
+
 const FUNDIDO_ENTRADA = 0.3;    // segundos en aparecer
 const FUNDIDO_SALIDA = 0.4;     // segundos en desvanecerse
 const FUNDIDO_POSARSE = 0.15;   // al llegar se cruza con la imagen quieta (igual que su transición en css/barra-viaje.css)
@@ -72,6 +86,7 @@ let opacidad = 0;
 let activo = false;                 // ¿debe verse?
 let corriendo = false;              // ¿está en marcha la animación?
 let anterior = 0;
+let impulso = 0;                    // velocidad extra de los clics (0 = vuela a su ritmo)
 
 // ----- Tamaños -----
 function medir() {
@@ -239,7 +254,9 @@ function fotograma(ahora) {
 
   // Avanza el vuelo. Al llegar avisa a la barra (solo si nadie lo ha despedido por el camino)
   if (!posado) {
-    vuelo = Math.min(1, vuelo + dt / DURACION_VUELO);
+    // Con impulso avanza (1 + impulso) veces más rápido; el impulso se va frenando solo
+    vuelo = Math.min(1, vuelo + (dt / DURACION_VUELO) * (1 + impulso));
+    impulso *= Math.exp(-FRENO_IMPULSO * dt);
     colocarCabeza();
     if (vuelo === 1) {
       posado = true;
@@ -268,6 +285,7 @@ document.addEventListener("dragon-llamar", (evento) => {
   objetivo = evento.detail.destino;
   if (!dragonEscalado) medir();
   nuevoVuelo(); // siempre desde la izquierda: la barra solo llama cuando hace falta un dragón nuevo
+  impulso = 0;
   activo = true;
   if (!corriendo) {
     corriendo = true;
@@ -277,6 +295,110 @@ document.addEventListener("dragon-llamar", (evento) => {
 });
 
 document.addEventListener("dragon-despedir", () => { activo = false; });
+
+// ----- Impulso: clic en un planeta o en la Z mientras vuela -----
+// Números primos: solo se puede dividir entre 1 y entre sí mismo
+function esPrimo(n) {
+  if (n < 2) return false;
+  for (let divisor = 2; divisor * divisor <= n; divisor++) {
+    if (n % divisor === 0) return false;
+  }
+  return true;
+}
+// El primo anterior (o igual): 40 → 37. Antes del 2 % no hay primo: sale 1
+function primoAnterior(n) {
+  for (let k = n; k >= 2; k--) if (esPrimo(k)) return k;
+  return 1;
+}
+
+// Las cifras en píxeles: cada una es una rejilla de 3 × 5 (1 = píxel encendido)
+const CIFRAS = {
+  0: ["111", "101", "101", "101", "111"],
+  1: ["010", "110", "010", "010", "111"],
+  2: ["111", "001", "111", "100", "111"],
+  3: ["111", "001", "111", "001", "111"],
+  4: ["101", "101", "111", "001", "001"],
+  5: ["111", "100", "111", "001", "111"],
+  6: ["111", "100", "111", "101", "111"],
+  7: ["111", "001", "001", "001", "001"],
+  8: ["111", "101", "111", "101", "111"],
+  9: ["111", "101", "111", "001", "111"],
+  "%": ["101", "001", "010", "100", "101"],
+};
+
+// Un <canvas> pequeño con el número, detrás de la cola. El dragón sigue volando y el número
+// se queda atrás: sube, se desvanece y se borra
+function mostrarNumero(texto) {
+  const p = PIXEL_NUMERO;
+  const columnas = texto.length * 4; // 3 por cifra + 1 de hueco (el de la última cifra lo usa la sombra)
+  const filas = 5 + 1;
+  const numero = document.createElement("canvas");
+  numero.className = "dragon-vuelo__numero";
+  numero.setAttribute("aria-hidden", "true");
+  numero.width = columnas * p * dpr;
+  numero.height = filas * p * dpr;
+  numero.style.width = columnas * p + "px";
+  numero.style.height = filas * p + "px";
+  const pincel = numero.getContext("2d");
+  pincel.scale(dpr, dpr);
+  // Primero la sombra negra (un píxel abajo a la derecha) y encima las cifras blancas
+  for (const [color, desplazar] of [["#000000", 1], ["#ffffff", 0]]) {
+    pincel.fillStyle = color;
+    [...texto].forEach((caracter, i) => {
+      CIFRAS[caracter].forEach((fila, y) => {
+        [...fila].forEach((bit, x) => {
+          if (bit === "1") pincel.fillRect((i * 4 + x + desplazar) * p, (y + desplazar) * p, p, p);
+        });
+      });
+    });
+  }
+  // Detrás de la cola: desde la punta de la cola, hacia atrás por el camino (al revés de
+  // hacia donde vuela), un hueco de SEPARACION_COLA y medio número más, para que no la toque
+  const cola = puntoEn(posicion - largoDragon);
+  const atras = SEPARACION_COLA + (columnas * p) / 2;
+  const centroX = cola.x - Math.cos(cola.angulo) * atras;
+  const centroY = cola.y - Math.sin(cola.angulo) * atras;
+  // El lienzo del dragón está dentro de .orbita, igual que el número. Al salir, la cola aún está
+  // fuera de la pantalla: el número se queda en el borde izquierdo para que se vea
+  const x = Math.max(4, lienzoDragon.offsetLeft + centroX - (columnas * p) / 2);
+  const y = lienzoDragon.offsetTop + centroY - (filas * p) / 2;
+  numero.style.left = Math.round(x) + "px";
+  numero.style.top = Math.round(y) + "px";
+  lienzoDragon.parentElement.appendChild(numero);
+  numero.animate(
+    [
+      { translate: "0 0", scale: 0.6, opacity: 1 },
+      { translate: "0 -6px", scale: 1.15, opacity: 1, offset: 0.15 }, // "salta" al aparecer
+      { translate: "0 -14px", scale: 1, opacity: 1, offset: 0.5 },
+      { translate: `0 -${SUBE_NUMERO}px`, scale: 1, opacity: 0 },
+    ],
+    { duration: DURACION_NUMERO, easing: "ease-out" }
+  ).onfinish = () => numero.remove();
+}
+
+function impulsar() {
+  if (!activo || posado) return; // solo mientras vuela hacia la placa
+  impulso = Math.min(IMPULSO_MAXIMO, impulso + IMPULSO);
+  // Cuánto camino lleva la cabeza, de 0 a 100 %
+  const total = camino[camino.length - 1].largo;
+  const porcentaje = Math.floor(((posicion - largoDragon) / (total - largoDragon)) * 100);
+  mostrarNumero(primoAnterior(Math.max(0, Math.min(100, porcentaje))) + "%");
+}
+
+// Solo clics de verdad (ratón o dedo) que no terminan un arrastre de la órbita.
+// Escuchamos en toda la página "en captura" (antes que nadie): así da igual lo que hagan
+// después los planetas o la Z con su clic
+let xPulsado = 0, yPulsado = 0;
+document.addEventListener("pointerdown", (evento) => {
+  xPulsado = evento.clientX;
+  yPulsado = evento.clientY;
+}, true);
+document.addEventListener("click", (evento) => {
+  if (evento.detail === 0) return; // teclado
+  if (!evento.target.closest(".planeta__enlace, .agujero__zona")) return;
+  if (Math.hypot(evento.clientX - xPulsado, evento.clientY - yPulsado) > 5) return; // arrastró la órbita
+  impulsar();
+}, true);
 
 window.addEventListener("resize", () => {
   if (!dragonEscalado || !objetivo) return;

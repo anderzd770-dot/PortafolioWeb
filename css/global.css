@@ -100,20 +100,133 @@ svg {
   color: var(--color-texto);
 }
 
-/* ----- Pie ----- */
+/* ----- Pie: "horizonte de eventos" -----
+   Arriba, una línea de cromo (los mismos tonos que la Z) que fluye despacio,
+   con unos pocos píxeles que viajan por ella. El texto va tenue y se ilumina
+   al pasar el ratón o al llegar con Tab. */
 .pie {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.25rem 1.5rem;
-  padding: 1rem var(--margen-lateral);
-  border-top: 1px solid var(--color-linea);
+  gap: 0.35rem 3rem;
+  padding: 0.85rem var(--margen-lateral) 0.8rem;
   color: var(--color-texto-suave);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  transition: color 0.4s;
 }
 
 .pie p {
   margin: 0;
+}
+
+/* Dos columnas que comparten el ancho; si no caben (móvil), una debajo de otra */
+.pie__columna {
+  flex: 1 1 22rem;
+  max-width: 34rem;
+}
+
+.pie__columna--legal {
+  text-align: right;
+}
+
+.pie a {
+  color: inherit;
+  text-decoration-color: var(--color-linea);
+  text-underline-offset: 0.2em;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.pie a:hover {
+  color: var(--color-acento);
+  text-decoration-color: currentColor;
+}
+
+/* La franja del horizonte: 5 px de alto para que quepan los píxeles,
+   y "overflow: hidden" para que no se salgan de la pantalla por los lados */
+.pie__horizonte {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  overflow: hidden;
+  opacity: 0.55;
+  transition: opacity 0.4s, filter 0.4s;
+}
+
+/* La línea de cromo: un degradado que se repite cada 480 px y se desliza,
+   como el metal líquido de la Z. Empieza y acaba en el mismo azul oscuro
+   para que no se note dónde se repite. Los bordes se desvanecen (mask). */
+.pie__horizonte::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    #2a3350, #a3b3d3 18%, #ffffff 28%, #6c7996 42%,
+    #2a3350 55%, #dbe4f4 70%, #8190b2 84%, #2a3350) 0 0 / 480px 100% repeat-x;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  animation: pie-fluir 8s linear infinite;
+}
+
+@keyframes pie-fluir {
+  to { background-position: 480px 0; }
+}
+
+/* Los píxeles: cuadraditos claros que cruzan la línea de lado a lado
+   y parpadean de vez en cuando, como los del disco del agujero negro */
+.pie__pixel {
+  position: absolute;
+  top: calc(2.5px - var(--tam) / 2); /* centrado sobre la línea */
+  left: var(--x);                    /* su sitio si no hay animación */
+  width: var(--tam);
+  height: var(--tam);
+  background: #dbe4f4;
+  box-shadow: 0 0 4px rgba(170, 200, 255, 0.8);
+  animation:
+    pie-viajar var(--dur) linear var(--retraso) infinite var(--sentido, normal),
+    pie-parpadeo 3.7s steps(1) var(--retraso) infinite;
+}
+
+@keyframes pie-viajar {
+  from { left: -1%; }
+  to   { left: 101%; }
+}
+
+@keyframes pie-parpadeo {
+  0%, 100% { opacity: 1; }
+  8%       { opacity: 0.25; }
+  12%      { opacity: 1; }
+  55%      { opacity: 0.5; }
+  58%      { opacity: 1; }
+}
+
+/* Ratón encima o Tab dentro del pie: el texto se ilumina y la línea brilla */
+.pie:hover,
+.pie:focus-within {
+  color: var(--color-texto);
+}
+
+.pie:hover .pie__horizonte,
+.pie:focus-within .pie__horizonte {
+  opacity: 1;
+  filter: drop-shadow(0 0 3px rgba(170, 200, 255, 0.7));
+}
+
+/* Móvil: una sola columna, todo alineado a la izquierda */
+@media (max-width: 600px) {
+  .pie {
+    font-size: 0.7rem;
+  }
+
+  .pie__columna--legal {
+    text-align: left;
+  }
 }
 
 /* ----- Accesibilidad ----- */
@@ -147,5 +260,12 @@ svg {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* El horizonte del pie se queda quieto: cada píxel en su sitio (--x),
+     en vez de terminar su viaje amontonado en el borde */
+  .pie__horizonte::before,
+  .pie__pixel {
+    animation: none !important;
   }
 }

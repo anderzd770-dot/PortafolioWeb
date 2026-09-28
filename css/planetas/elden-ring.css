@@ -43,6 +43,12 @@
    ¡Prueba a cambiarlo! (1.5 = como Wukong y Zelda, 1.7 = como el agujero) */
 .planeta--elden-ring {
   --tamano-arte: 2.03;
+  /* Zona para apuntar (ver inicio.css): el mismo sitio que la imagen y su silueta */
+  --zona-izq: calc(50% - 54.63% * var(--tamano-arte));
+  --zona-arriba: calc(100% - 141.09% * var(--tamano-arte));
+  --zona-ancho: calc(108.96% * var(--tamano-arte));
+  --zona-proporcion: 512 / 663;
+  --zona-forma: polygon(2.0% 50.5%, 9.4% 17.2%, 10.5% 15.4%, 16.8% 9.4%, 39.1% 0.9%, 59.0% 0.6%, 81.6% 7.3%, 92.2% 12.1%, 95.3% 17.2%, 98.8% 55.0%, 98.8% 57.4%, 97.7% 73.1%, 86.3% 96.7%, 85.5% 97.0%, 49.6% 98.2%, 15.2% 97.0%, 14.1% 95.2%, 5.1% 76.4%, 2.7% 68.3%, 1.2% 58.0%);
 }
 
 .planeta--elden-ring .planeta__arte {
